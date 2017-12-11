@@ -1,17 +1,8 @@
-2.0.3 (unreleased)
+2.0.3 (2017-12-11)
 ==================
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -35,19 +26,16 @@ astropy.coordinates
   nutation from the rotation and fixing the computation of the position of the
   Sun. [#6508]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
 astropy.extern
 ^^^^^^^^^^^^^^
 
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
+- Version 0.2.1 of ``pytest-astropy`` is included as an external package. [#6918]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
 - Fix writing the result of ``fitsdiff`` to file with ``--output-file``. [#6621]
+
 - Fix a minor bug where ``FITS_rec`` instances can not be indexed with tuples
   and other sequences that end up with a scalar. [#6955, #6966]
 
@@ -57,15 +45,6 @@ astropy.io.misc
 - Fix ``ImportError`` when ``hdf5`` is imported first in a fresh Python
   interpreter in Python 3. [#6604, #6610]
 
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -74,9 +53,6 @@ astropy.nddata
 - Fixed a problem with ``CCDData.read`` when the extension wasn't given and the
   primary HDU contained no ``data`` but another HDU did. In that case the header
   were not correctly combined. [#6489]
-
-astropy.samp
-^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -110,8 +86,7 @@ astropy.tests
 - Fixed a bug that meant that the data.astropy.org mirror could not be used when
   using --remote-data=astropy. [#6724]
 
-- Support compatibility with new ``pytest-astropy`` plugins. Version 0.2.1
-  of ``pytest-astropy`` is included as an external package. [#6918]
+- Support compatibility with new ``pytest-astropy`` plugins. [#6918]
 
 astropy.time
 ^^^^^^^^^^^^
@@ -152,11 +127,6 @@ astropy.visualization
 - Fixed the vertical orientation of the output bitmap image to match that
   of the FITS image. [#6844]
 
-astropy.vo
-^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
 
 Other Changes and Additions
 ---------------------------
@@ -167,6 +137,7 @@ Other Changes and Additions
 - Fixed broken links in the documentation. [#6745]
 
 - Ensured that all tests use the Astropy data mirror if needed. [#6767]
+
 
 2.0.2 (2017-09-08)
 ==================
