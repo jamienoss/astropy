@@ -59,10 +59,11 @@ def convolve1d_boundary_wrap(np.ndarray[DTYPE_t, ndim=1] f,
     return conv
 
 
-@cython.boundscheck(False)  # turn off bounds-checking for entire function
+#@cython.cdivision(True)
+@cython.boundscheck(False) # turn off bounds-checking for entire function
 def convolve2d_boundary_wrap(np.ndarray[DTYPE_t, ndim=2] f,
                              np.ndarray[DTYPE_t, ndim=2] g,
-                             bint normalize_by_kernel):
+                             const bint normalize_by_kernel):
 
     if g.shape[0] % 2 != 1 or g.shape[1] % 2 != 1:
         raise ValueError("Convolution kernel must have odd dimensions")
@@ -82,7 +83,7 @@ def convolve2d_boundary_wrap(np.ndarray[DTYPE_t, ndim=2] f,
     cdef int iimin, iimax, jjmin, jjmax
 
     cdef DTYPE_t top, bot, ker, val
-
+    print("in here")
     # release the GIL
     with nogil:
 
@@ -96,22 +97,23 @@ def convolve2d_boundary_wrap(np.ndarray[DTYPE_t, ndim=2] f,
                 jjmin = j - wky
                 jjmax = j + wky + 1
                 for ii in range(iimin, iimax):
+                    iii = ii % nx
                     for jj in range(jjmin, jjmax):
-                        iii = ii % nx
+                        #iii = ii % nx
                         jjj = jj % ny
                         val = f[iii, jjj]
                         ker = g[<unsigned int>(nkx - 1 - (wkx + ii - i)),
                                 <unsigned int>(nky - 1 - (wky + jj - j))]
-                        if not npy_isnan(val):
-                            top += val * ker
-                            bot += ker
-                if normalize_by_kernel:
-                    if bot == 0:
-                        conv[i, j] = f[i, j]
-                    else:
-                        conv[i, j] = top / bot
-                else:
-                    conv[i, j] = top
+                        #if not npy_isnan(val):
+                        top += val * ker
+                        bot += ker
+                #if normalize_by_kernel:
+                #    if bot == 0:
+                #        conv[i, j] = f[i, j]
+                #    else:
+                #        conv[i, j] = top / bot
+                #else:
+                conv[i, j] = top
     # GIl acquired again here
     return conv
 

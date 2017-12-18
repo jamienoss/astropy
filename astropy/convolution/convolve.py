@@ -102,6 +102,8 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     For masked arrays, masked values are treated as NaNs.  The convolution
     is always done at ``numpy.float`` precision.
     '''
+    
+    print("in convolve")
     from .boundary_none import (convolve1d_boundary_none,
                                 convolve2d_boundary_none,
                                 convolve3d_boundary_none)
