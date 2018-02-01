@@ -59,9 +59,61 @@ def convolve1d_boundary_none(np.ndarray[DTYPE_t, ndim=1] f,
     # GIL acquired again here
     return conv
 
-
 @cython.boundscheck(False)  # turn off bounds-checking for entire function
 def convolve2d_boundary_none(np.ndarray[DTYPE_t, ndim=2] f,
+                             np.ndarray[DTYPE_t, ndim=2] g,
+                             bint normalize_by_kernel):
+
+    if g.shape[0] % 2 != 1 or g.shape[1] % 2 != 1:
+        raise ValueError("Convolution kernel must have odd dimensions")
+
+    assert f.dtype == DTYPE and g.dtype == DTYPE
+
+    cdef int nx = f.shape[0]
+    cdef int ny = f.shape[1]
+    cdef int nkx = g.shape[0]
+    cdef int nky = g.shape[1]
+    cdef int wkx = nkx // 2
+    cdef int wky = nky // 2
+
+    # The following need to be set to zeros rather than empty because the
+    # boundary does not get reset.
+    cdef np.ndarray[DTYPE_t, ndim=2] conv = np.zeros([nx, ny], dtype=DTYPE)
+
+    cdef unsigned int i, j, ii, jj
+
+    cdef int iimin, iimax, jjmin, jjmax
+
+    cdef DTYPE_t top, bot, ker, val
+
+    # release the GIL
+    with nogil:
+
+        # Now run the proper convolution
+        for i in range(wkx, nx - wkx):
+            for j in range(wky, ny - wky):
+                top = 0.
+                bot = 0.
+                for ii in range(i - wkx, i + wkx + 1):
+                    for jj in range(j - wky, j + wky + 1):
+                        val = f[ii, jj]
+                        ker = g[<unsigned int>(nkx - 1 - (wkx + ii - i)),
+                                <unsigned int>(nky - 1 - (wky + jj - j))]
+                        if not npy_isnan(val):
+                            top += val * ker
+                            bot += ker
+                if normalize_by_kernel:
+                    if bot == 0:
+                        conv[i, j] = f[i, j]
+                    else:
+                        conv[i, j] = top / bot
+                else:
+                    conv[i, j] = top
+    # GIL acquired again here
+    return conv
+
+@cython.boundscheck(False)  # turn off bounds-checking for entire function
+def convolve2d_boundary_none_dev(np.ndarray[DTYPE_t, ndim=2] f,
                              np.ndarray[DTYPE_t, ndim=2] g,
                              bint normalize_by_kernel):
 
