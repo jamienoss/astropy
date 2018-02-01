@@ -391,6 +391,7 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     '''
     from .boundary_none import (convolve1d_boundary_none,
                                 convolve2d_boundary_none,
+                                convolve2d_boundary_none_dev,
                                 convolve3d_boundary_none)
 
     from .boundary_extend import (convolve1d_boundary_extend,
@@ -488,10 +489,16 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
 
     # Mark the NaN values so we can replace them later if interpolate_nan is
     # not set
-    if preserve_nan or nan_treatment:
+    if preserve_nan or nan_treatment == 'fill' or nan_treatment == 'interpolate':
         initially_nan = np.isnan(array_internal)
         if nan_treatment:
-            array_internal[initially_nan] = fill_value
+            if nan_treatment == 'interpolate':
+                temp_fill_value = 0
+            elif nan_treatment == 'fill':
+                temp_fill_value = fill_value
+            
+            array_internal[initially_nan] = temp_fill_value
+        
 
     #if nan_treatment == 'fill':
     #    initially_nan = np.isnan(array_internal)
@@ -508,15 +515,15 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                         "close to zero. The sum of the given kernel is < {0}"
                         .format(1. / MAX_NORMALIZATION))
 
-    if normalize_kernel and not kernel_sums_to_zero:
-        kernel_internal /= kernel_sum
-    else:
-        kernel_internal = kernel
-
-    #if kernel_sums_to_zero:
-    #    kernel_internal = kernel
-    #else:
+    #if normalize_kernel and not kernel_sums_to_zero:
     #    kernel_internal /= kernel_sum
+    #else:
+    #    kernel_internal = kernel
+
+    if kernel_sums_to_zero:
+        kernel_internal = kernel
+    else:
+        kernel_internal /= kernel_sum
 
     #if not kernel_sums_to_zero:
     #    kernel_internal /= kernel_sum
@@ -592,11 +599,11 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     # If normalization was not requested, we need to scale the array (since
     # the kernel is effectively normalized within the cython functions)
     
-    #if not normalize_kernel and not kernel_sums_to_zero:
-    #    result *= kernel_sum
+    if not normalize_kernel and not kernel_sums_to_zero:
+        result *= kernel_sum
 
-    if normalize_kernel and not kernel_sums_to_zero:
-        result /= kernel_sum
+    #if normalize_kernel and not kernel_sums_to_zero:
+    #    result *= kernel_sum
 
     if preserve_nan or nan_treatment == 'fill':
         result[initially_nan] = np.nan

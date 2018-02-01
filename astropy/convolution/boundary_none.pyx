@@ -152,8 +152,8 @@ def convolve2d_boundary_none_dev(np.ndarray[DTYPE_t, ndim=2] f,
                         val = f[ii, jj]
                         ker = g[<unsigned int>(nkx - 1 - (wkx + ii - i)),
                                 <unsigned int>(nky - 1 - (wky + jj - j))]
-                        if not npy_isnan(val):#replace NaNs with 0 to remove this IF
-                            top += val * ker
+                        #if not npy_isnan(val):#replace NaNs with 0 to remove this IF
+                        top += val * ker
                             #bot += ker
                 #if normalize_by_kernel:
                     #if bot == 0:
