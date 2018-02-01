@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
+import ctypes
 import numpy as np
 
 from ..modeling.core import FittableModel, custom_model
@@ -18,6 +18,26 @@ class KernelSizeError(Exception):
     Called when size of kernels is even.
     """
 
+def has_even_axis(array):
+    if isinstance(array, list):
+        return not len(array) % 2
+    else:
+        return any(not axes_size % 2 for axes_size in array.shape)
+
+def raise_even_kernel_exception():
+    raise KernelSizeError("Kernel size must be odd in all axes.")
+
+def is_openmp_enabled():
+    # Find and load C convolution library
+    lib_glob = 'c_convolve*.so'
+    lib_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../../')
+    lib_path = glob.glob(os.path.join(lib_path, lib_glob))[0]
+    lib = ctypes.cdll.LoadLibrary(lib_path)
+    _is_openmp_enabled = lib.is_openmp_enabled
+    _is_openmp_enabled.restype = bool
+    _is_openmp_enabled.argtypes = None
+
+    return _is_openmp_enabled()
 
 def add_kernel_arrays_1D(array_1, array_2):
     """

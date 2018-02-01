@@ -13,6 +13,9 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
+- Thread with OpenMP support
+  [#TBD]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
@@ -109,6 +112,19 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
+- Add ``n_threads`` parameter to control number of threads used in C computation.
+  An exception is raised for negative values.
+  A warnig is issued if ``n_threads`` > total number of CPUs reported by the OS.
+  A warning is raised if ``n_threads`` > 1 and Astropy was NOT built with OpenMP support.
+  [#TBD]
+
+- Not technically an API changes, however, the doc string indicated that ``boundary=None``
+  was the default when actually it is ``boundary='fill'``. The doc string has been corrected,
+  however, someone may interpret this as an API change not realising that nothing has actually
+  changed.
+  [#TBD]
+
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
@@ -183,6 +199,10 @@ astropy.constants
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
+
+- Both the existing and previous (Cython/C) implementations of boundary=None
+  require the kernel to be smaller than the image. This was never actually checked,
+  it now is and an exception is raised.
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
