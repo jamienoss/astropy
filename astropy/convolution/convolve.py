@@ -23,9 +23,8 @@ __doctest_skip__ = ['*']
 
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 
-
 @support_nddata(data='array')
-def convolve(array, kernel, boundary='fill', fill_value=0.,
+def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
              nan_treatment='interpolate', normalize_kernel=True, mask=None,
              preserve_nan=False, normalization_zero_tol=1e-8):
     '''
@@ -104,6 +103,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     '''
     from .boundary_none import (convolve1d_boundary_none,
                                 convolve2d_boundary_none,
+                                convolve2d_boundary_none_dev,
                                 convolve3d_boundary_none)
 
     from .boundary_extend import (convolve1d_boundary_extend,
@@ -201,30 +201,27 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
     # Mark the NaN values so we can replace them later if interpolate_nan is
     # not set
-    if preserve_nan:
-        badvals = np.isnan(array_internal)
-
-    if nan_treatment == 'fill':
+    if preserve_nan or nan_treatment == 'fill':
         initially_nan = np.isnan(array_internal)
-        array_internal[initially_nan] = fill_value
+        if nan_treatment:
+            array_internal[initially_nan] = fill_value
 
-    # Because the Cython routines have to normalize the kernel on the fly, we
-    # explicitly normalize the kernel here, and then scale the image at the
-    # end if normalization was not requested.
-    kernel_sum = kernel_internal.sum()
-    kernel_sums_to_zero = np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
+    # nan interpolation significantly slows down the cython convolution
+    # compuatation. Since nan_treatment = 'interpolate', is the default
+    # check whether it is even needed, if not, don't interpolate.
+    # NB: np.isnan(array_internal.sum()) is fatser than np.isnan(array_internal).any()
+    nan_interpolate = nan_treatment == 'interpolate' and np.isnan(array_internal.sum())
 
-    if (kernel_sum < 1. / MAX_NORMALIZATION or kernel_sums_to_zero) and normalize_kernel:
-        raise Exception("The kernel can't be normalized, because its sum is "
-                        "close to zero. The sum of the given kernel is < {0}"
-                        .format(1. / MAX_NORMALIZATION))
+    if normalize_kernel or nan_interpolate:
+        kernel_sum = kernel_internal.sum()
+        kernel_sums_to_zero = np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
 
-    if not kernel_sums_to_zero:
-        kernel_internal /= kernel_sum
-    else:
-        kernel_internal = kernel
+        if kernel_sum < 1. / MAX_NORMALIZATION or kernel_sums_to_zero:# and normalize_kernel:
+            raise Exception("The kernel can't be normalized, because its sum is "
+                            "close to zero. The sum of the given kernel is < {0}"
+                            .format(1. / MAX_NORMALIZATION))
 
-    renormalize_by_kernel = not kernel_sums_to_zero
+    renormalize_by_kernel = True#not kernel_sums_to_zero
 
     if array_internal.ndim == 0:
         raise Exception("cannot convolve 0-dimensional arrays")
@@ -264,9 +261,9 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
                                               renormalize_by_kernel,
                                              )
         elif boundary is None:
-            result = convolve2d_boundary_none(array_internal,
+            result = convolve2d_boundary_none_dev(array_internal,
                                               kernel_internal,
-                                              renormalize_by_kernel,
+                                              nan_interpolate,
                                              )
     elif array_internal.ndim == 3:
         if boundary == 'extend':
@@ -290,14 +287,21 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         raise NotImplementedError('convolve only supports 1, 2, and 3-dimensional '
                                   'arrays at this time')
 
-    # If normalization was not requested, we need to scale the array (since
-    # the kernel is effectively normalized within the cython functions)
-    if not normalize_kernel and not kernel_sums_to_zero:
-        result *= kernel_sum
+    # So far, normalization has only occured for nan_treatment == 'interpolate'
+    # beacuse this had to happen within the Cython extension so as to ignore
+    # any NaNs
+    if normalize_kernel:
+        if not nan_interpolate:
+            result /= kernel_sum
+    else:
+        if nan_interpolate:
+            result *= kernel_sum
 
     if preserve_nan:
-        result[badvals] = np.nan
+        result[initially_nan] = np.nan
 
+    # In the case that array_internal is an alias rather than a copy
+    # of the input array, the original NaN values must be placed back
     if nan_treatment == 'fill':
         array_internal[initially_nan] = np.nan
 
