@@ -94,22 +94,22 @@ def convolve2d_boundary_none(np.ndarray[DTYPE_t, ndim=2] f,
         for i in range(wkx, nx - wkx):
             for j in range(wky, ny - wky):
                 top = 0.
-                bot = 0.
+                #bot = 0.
                 for ii in range(i - wkx, i + wkx + 1):
                     for jj in range(j - wky, j + wky + 1):
                         val = f[ii, jj]
                         ker = g[<unsigned int>(nkx - 1 - (wkx + ii - i)),
                                 <unsigned int>(nky - 1 - (wky + jj - j))]
-                        if not npy_isnan(val):
+                        if not npy_isnan(val):#replace NaNs with 0 to remove this IF
                             top += val * ker
-                            bot += ker
-                if normalize_by_kernel:
-                    if bot == 0:
-                        conv[i, j] = f[i, j]
-                    else:
-                        conv[i, j] = top / bot
-                else:
-                    conv[i, j] = top
+                            #bot += ker
+                #if normalize_by_kernel:
+                    #if bot == 0:
+                    #    conv[i, j] = f[i, j]
+                    #else:
+                    #conv[i, j] = top / bot
+                #else:
+                conv[i, j] = top
     # GIL acquired again here
     return conv
 
