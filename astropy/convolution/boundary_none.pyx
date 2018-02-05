@@ -129,6 +129,7 @@ def convolve2d_boundary_none_dev(np.ndarray[DTYPE_t, ndim=2] f,
 
 # NOTE: check inline is compulsory for complier opt, i.e. __attribute__((always_inline)) 
 @cython.cdivision(True)
+@cython.wraparound(False)
 @cython.boundscheck(False)  # turn off bounds-checking for entire function
 cdef inline convolve2d_boundary_none_dev_internal(np.ndarray[DTYPE_t, ndim=2] f,
                              np.ndarray[DTYPE_t, ndim=2] g,
