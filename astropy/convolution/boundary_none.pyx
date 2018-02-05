@@ -134,7 +134,14 @@ def convolve2d_boundary_none_dev(np.ndarray[DTYPE_t, ndim=2] f,
     cdef np.ndarray[DTYPE_t, ndim=2] conv = np.zeros([nx, ny], dtype=DTYPE)
 
     cdef unsigned int i, j, ii, jj
-
+    cdef unsigned int nkx_minus_1 = nkx-1, nky_minus_1 = nky-1
+    cdef unsigned int wkx_minus_i, wky_minus_j
+    cdef unsigned int ker_i, ker_j
+    cdef unsigned int ny_minus_wky = ny - wky
+    cdef unsigned int i_minus_wkx, wkx_plus_1 = wkx + 1
+    cdef unsigned int j_minus_wky, wky_plus_1 = wky + 1
+    cdef unsigned int i_plus_wkx_plus_1, j_plus_wky_plus_1
+    cdef unsigned int nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j
     cdef int iimin, iimax, jjmin, jjmax
 
     cdef DTYPE_t top, bot, ker, val
@@ -143,15 +150,25 @@ def convolve2d_boundary_none_dev(np.ndarray[DTYPE_t, ndim=2] f,
     with nogil:
 
         # Now run the proper convolution
-        for i in range(wkx, nx - wkx):
-            for j in range(wky, ny - wky):
+        for i in range(wkx, nx_minus_wkx):
+            wkx_minus_i = wkx - i # wkx - 1
+            i_minus_wkx = i - wkx # i - wkx
+            i_plus_wkx_plus_1 = i + wkx_plus_1 # i + wkx + 1
+            nkx_minus_1_minus_wkx_plus_i = nkx_minus_1 - wkx_minus_i # nkx - 1 - (wkx - i)
+    
+            for j in range(wky, ny_minus_wky):
+                wky_minus_j = wkx - j # wky - j
+                j_minus_wky = j - wky # j - wky
+                j_plus_wky_plus_1 = j + wky_plus_1 # j + wky + 1
+                nky_minus_1_minus_wky_plus_j = nky_minus_1 - wky_minus_j # nky - 1 - (wky - i)
                 top = 0.
                 #bot = 0.
-                for ii in range(i - wkx, i + wkx + 1):
-                    for jj in range(j - wky, j + wky + 1):
+                for ii in range(i_minus_wkx, i_plus_wkx_plus_1):
+                    ker_i = nkx_minus_1_minus_wkx_plus_i - ii # nkx - 1 - (wkx + ii - i)
+                    for jj in range(j_wky_wky, j_plus_wky_plus_1):
+                        ker_j = nky_minus_1_minus_wky_plus_j - jj # nky - 1 - (wky + jj - j)
                         val = f[ii, jj]
-                        ker = g[<unsigned int>(nkx - 1 - (wkx + ii - i)),
-                                <unsigned int>(nky - 1 - (wky + jj - j))]
+                        ker = g[ker_i, ker_j]
                         #if not npy_isnan(val):#replace NaNs with 0 to remove this IF
                         top += val * ker
                             #bot += ker
