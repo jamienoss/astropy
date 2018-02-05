@@ -112,15 +112,28 @@ def convolve2d_boundary_none(np.ndarray[DTYPE_t, ndim=2] f,
     # GIL acquired again here
     return conv
 
-@cython.boundscheck(False)  # turn off bounds-checking for entire function
+@cython.boundscheck(False)
 def convolve2d_boundary_none_dev(np.ndarray[DTYPE_t, ndim=2] f,
                              np.ndarray[DTYPE_t, ndim=2] g,
-                             bint normalize_by_kernel):
+                             bint nan_interpolate):
 
     if g.shape[0] % 2 != 1 or g.shape[1] % 2 != 1:
         raise ValueError("Convolution kernel must have odd dimensions")
 
     assert f.dtype == DTYPE and g.dtype == DTYPE
+    
+    if nan_interpolate:
+        return convolve2d_boundary_none_dev_internal(f, g, True)
+    else:
+        return convolve2d_boundary_none_dev_internal(f, g, False)
+
+# NOTE: check inline is compulsory for complier opt, i.e. __attribute__((always_inline)) 
+@cython.optimize.unpack_method_calls(False)
+@cython.cdivision(True)
+@cython.boundscheck(False)  # turn off bounds-checking for entire function
+cdef inline convolve2d_boundary_none_dev_internal(np.ndarray[DTYPE_t, ndim=2] f,
+                             np.ndarray[DTYPE_t, ndim=2] g,
+                             bint nan_interpolate):
 
     cdef int nx = f.shape[0]
     cdef int ny = f.shape[1]
@@ -137,6 +150,7 @@ def convolve2d_boundary_none_dev(np.ndarray[DTYPE_t, ndim=2] f,
     cdef unsigned int nkx_minus_1 = nkx-1, nky_minus_1 = nky-1
     cdef unsigned int wkx_minus_i, wky_minus_j
     cdef unsigned int ker_i, ker_j
+    cdef unsigned int nx_minus_wkx = nx - wkx
     cdef unsigned int ny_minus_wky = ny - wky
     cdef unsigned int i_minus_wkx, wkx_plus_1 = wkx + 1
     cdef unsigned int j_minus_wky, wky_plus_1 = wky + 1
@@ -162,23 +176,34 @@ def convolve2d_boundary_none_dev(np.ndarray[DTYPE_t, ndim=2] f,
                 j_plus_wky_plus_1 = j + wky_plus_1 # j + wky + 1
                 nky_minus_1_minus_wky_plus_j = nky_minus_1 - wky_minus_j # nky - 1 - (wky - i)
                 top = 0.
-                #bot = 0.
+                if nan_interpolate:
+                    bot = 0.
                 for ii in range(i_minus_wkx, i_plus_wkx_plus_1):
                     ker_i = nkx_minus_1_minus_wkx_plus_i - ii # nkx - 1 - (wkx + ii - i)
-                    for jj in range(j_wky_wky, j_plus_wky_plus_1):
+                    for jj in range(j_minus_wky, j_plus_wky_plus_1):
                         ker_j = nky_minus_1_minus_wky_plus_j - jj # nky - 1 - (wky + jj - j)
                         val = f[ii, jj]
                         ker = g[ker_i, ker_j]
-                        #if not npy_isnan(val):#replace NaNs with 0 to remove this IF
-                        top += val * ker
-                            #bot += ker
+                        if nan_interpolate:
+                            if not npy_isnan(val):
+                                top += val * ker
+                                bot += ker
+                        else:
+                            top += val * ker
+                if nan_interpolate:
+                    if bot == 0: # This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
+                        conv[i, j] = f[i, j]
+                    else:
+                        conv[i, j] = top / bot
+                else:
+                    conv[i, j] = top
                 #if normalize_by_kernel:
                     #if bot == 0:
                     #    conv[i, j] = f[i, j]
                     #else:
                     #conv[i, j] = top / bot
                 #else:
-                conv[i, j] = top
+                    #conv[i, j] = top
     # GIL acquired again here
     return conv
 
