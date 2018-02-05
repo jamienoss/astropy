@@ -489,7 +489,7 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
 
     # Mark the NaN values so we can replace them later if interpolate_nan is
     # not set
-    if preserve_nan or nan_treatment == 'fill' or nan_treatment == 'interpolate':
+    if preserve_nan or nan_treatment:
         initially_nan = np.isnan(array_internal)
         if nan_treatment:
             if nan_treatment == 'interpolate':
@@ -605,7 +605,7 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     #if normalize_kernel and not kernel_sums_to_zero:
     #    result *= kernel_sum
 
-    if preserve_nan or nan_treatment == 'fill':
+    if preserve_nan:
         result[initially_nan] = np.nan
 
     #if nan_treatment == 'fill':
