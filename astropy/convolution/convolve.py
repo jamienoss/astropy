@@ -614,8 +614,10 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     if preserve_nan:
         result[initially_nan] = np.nan
 
-    #if nan_treatment == 'fill':
-     #   array_internal[initially_nan] = np.nan
+    # In the case that array_internal is an alias rather than a copy
+    # of the input array, the original NaN values must be place back
+    if nan_treatment == 'fill':
+        array_internal[initially_nan] = np.nan
 
     # Try to preserve the input type if it's a floating point type
     if array_dtype.kind == 'f':
