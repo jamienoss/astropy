@@ -494,7 +494,7 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
         if nan_treatment:
             array_internal[initially_nan] = fill_value
 
-    # naninterpolation significantly slows down the cython convolution
+    # nan interpolation significantly slows down the cython convolution
     # compuatation. Since nan_treatment = 'interpolate', is the default
     # check whether it is even needed, if not, don't interpolate.
     # NB: np.isnan(array_internal.sum()) is fatser than np.isnan(array_internal).any()
@@ -620,7 +620,7 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
         result[initially_nan] = np.nan
 
     # In the case that array_internal is an alias rather than a copy
-    # of the input array, the original NaN values must be place back
+    # of the input array, the original NaN values must be placed back
     if nan_treatment == 'fill':
         array_internal[initially_nan] = np.nan
 
