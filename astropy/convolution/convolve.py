@@ -493,7 +493,12 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
         initially_nan = np.isnan(array_internal)
         if nan_treatment:
             array_internal[initially_nan] = fill_value
-        
+
+    # naninterpolation significantly slows down the cython convolution
+    # compuatation. Since nan_treatment = 'interpolate', is the default
+    # check whether it is even needed, if not, don't interpolate.
+    # NB: np.isnan(array_internal.sum()) is fatser than np.isnan(array_internal).any()
+    nan_interpolate = nan_treatment == 'interpolate' and np.isnan(array_internal.sum())
 
     #if nan_treatment == 'fill':
     #    initially_nan = np.isnan(array_internal)
@@ -502,11 +507,11 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     # Because the Cython routines have to normalize the kernel on the fly, we
     # explicitly normalize the kernel here, and then scale the image at the
     # end if normalization was not requested.
-    if normalize_kernel or nan_treatment == 'interpolate':
-        kernel_sum = kernel_internal.sum()  
+    if normalize_kernel or nan_interpolate:
+        kernel_sum = kernel_internal.sum()
         kernel_sums_to_zero = np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
 
-        if (kernel_sum < 1. / MAX_NORMALIZATION or kernel_sums_to_zero):# and normalize_kernel:
+        if kernel_sum < 1. / MAX_NORMALIZATION or kernel_sums_to_zero:# and normalize_kernel:
             raise Exception("The kernel can't be normalized, because its sum is "
                             "close to zero. The sum of the given kernel is < {0}"
                             .format(1. / MAX_NORMALIZATION))
@@ -568,7 +573,7 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
         elif boundary is None:
             result = convolve2d_boundary_none_dev(array_internal,
                                               kernel_internal,
-                                              nan_treatment == 'interpolate',
+                                              nan_interpolate,
                                              )
     elif array_internal.ndim == 3:
         if boundary == 'extend':
@@ -599,10 +604,10 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     # beacuse this had to happen within the Cython extension so as to ignore
     # any NaNs
     if normalize_kernel:
-        if not nan_treatment == 'interpolate':
+        if not nan_interpolate:
             result /= kernel_sum
     else:
-        if nan_treatment == 'interpolate':
+        if nan_interpolate:
             result *= kernel_sum
     
     #if not normalize_kernel and not kernel_sums_to_zero:
