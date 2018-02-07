@@ -604,11 +604,15 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     # beacuse this had to happen within the Cython extension so as to ignore
     # any NaNs
     if normalize_kernel:
-        if not nan_interpolate:
-            result /= kernel_sum
-    else:
-        if nan_interpolate:
-            result *= kernel_sum
+        result /= kernel_sum
+
+    
+    #if normalize_kernel:
+    #    if not nan_interpolate:
+    #        result /= kernel_sum
+    #else:
+    #    if nan_interpolate:
+    #        result *= kernel_sum
     
     #if not normalize_kernel and not kernel_sums_to_zero:
     #    result *= kernel_sum

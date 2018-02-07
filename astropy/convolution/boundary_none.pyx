@@ -158,7 +158,7 @@ cdef inline convolve2d_boundary_none_dev_internal(np.ndarray[DTYPE_t, ndim=2] f,
     cdef unsigned int nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j
     cdef int iimin, iimax, jjmin, jjmax
 
-    cdef DTYPE_t top, bot, ker, val
+    cdef DTYPE_t top, bot, ker, val, scale
 
     # release the GIL
     with nogil:
@@ -177,7 +177,8 @@ cdef inline convolve2d_boundary_none_dev_internal(np.ndarray[DTYPE_t, ndim=2] f,
                 nky_minus_1_minus_wky_plus_j = nky_minus_1 - wky_minus_j # nky - 1 - (wky - i)
                 top = 0.
                 if nan_interpolate:
-                    bot = 0.
+                    #bot = 0.
+                    scale = 0.
                 for ii in range(i_minus_wkx, i_plus_wkx_plus_1):
                     ker_i = nkx_minus_1_minus_wkx_plus_i - ii # nkx - 1 - (wkx + ii - i)
                     for jj in range(j_minus_wky, j_plus_wky_plus_1):
@@ -187,14 +188,21 @@ cdef inline convolve2d_boundary_none_dev_internal(np.ndarray[DTYPE_t, ndim=2] f,
                         if nan_interpolate:
                             if not npy_isnan(val):
                                 top += val * ker
-                                bot += ker
+                                #bot += ker
+                            else:
+                                scale += ker
                         else:
                             top += val * ker
                 if nan_interpolate:
-                    if bot == 0: # This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
-                        conv[i, j] = f[i, j]
-                    else:
-                        conv[i, j] = top / bot
+                    conv[i,j] = top
+                    if scale:
+                        conv[i,j] *= scale
+                    
+                    
+                    #if bot == 0: # This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
+       # ---------->#    conv[i, j] = f[i, j] # what if f[i,j] == nan? how is this interpoalted, it isn't?
+                    #else:
+                    #    conv[i, j] = top / bot
                 else:
                     conv[i, j] = top
                 #if normalize_by_kernel:
