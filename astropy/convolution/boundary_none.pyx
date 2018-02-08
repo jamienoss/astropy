@@ -177,7 +177,7 @@ cdef inline convolve2d_boundary_none_dev_internal(np.ndarray[DTYPE_t, ndim=2] f,
                 nky_minus_1_minus_wky_plus_j = nky_minus_1 - wky_minus_j # nky - 1 - (wky - i)
                 top = 0.
                 if nan_interpolate:
-                    #bot = 0.
+                    bot = 0.
                     scale = 0.
                 for ii in range(i_minus_wkx, i_plus_wkx_plus_1):
                     ker_i = nkx_minus_1_minus_wkx_plus_i - ii # nkx - 1 - (wkx + ii - i)
@@ -188,12 +188,15 @@ cdef inline convolve2d_boundary_none_dev_internal(np.ndarray[DTYPE_t, ndim=2] f,
                         if nan_interpolate:
                             if not npy_isnan(val):
                                 top += val * ker
-                                #bot += ker
+                                bot += ker
                             else:
                                 scale += ker
                         else:
                             top += val * ker
                 conv[i,j] = top
+                if nan_interpolate:
+                    #conv[i,j] *= (1. + scale / bot)
+                    conv[i,j] += conv[i,j] * scale / bot
                 #if nan_interpolate and scale:                    
                 #    conv[i,j] *= scale
                     
