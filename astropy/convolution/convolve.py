@@ -507,7 +507,7 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     # Because the Cython routines have to normalize the kernel on the fly, we
     # explicitly normalize the kernel here, and then scale the image at the
     # end if normalization was not requested.
-    if normalize_kernel or nan_interpolate:
+    if normalize_kernel:# or nan_interpolate:
         kernel_sum = kernel_internal.sum()
         kernel_sums_to_zero = np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
 
