@@ -15,6 +15,7 @@ from ..nddata import support_nddata
 from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from ..modeling.core import _CompoundModelMeta
 
+import ctypes
 
 
 # Disabling all doctests in this module until a better way of handling warnings
@@ -406,6 +407,19 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                                 convolve2d_boundary_wrap,
                                 convolve3d_boundary_wrap)
 
+    from numpy.ctypeslib import ndpointer
+    lib = ctypes.cdll.LoadLibrary("./dirct_conv.so")
+    fun = lib.py_comp_conv
+    fun.restype = None
+    fun.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                ctypes.c_size_t,
+                ctypes.c_size_t,
+                ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                ctypes.c_size_t,
+                ctypes.c_size_t]
+
+
     if boundary not in BOUNDARY_OPTIONS:
         raise ValueError("Invalid boundary option: must be one of {0}"
                          .format(BOUNDARY_OPTIONS))
@@ -457,6 +471,8 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
         array_internal = array.astype(float, copy=False)
     else:
         raise TypeError("array should be a list or a Numpy array")
+
+    conv = np.zeros(array.shape, dtype=float, order='C')
 
     if isinstance(kernel, list):
         kernel_internal = np.array(kernel, dtype=float)
@@ -571,10 +587,18 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                                               renormalize_by_kernel,
                                              )
         elif boundary is None:
-            result = convolve2d_boundary_none_dev(array_internal,
-                                              kernel_internal,
-                                              nan_interpolate,
-                                             )
+            #result = convolve2d_boundary_none_dev(array_internal,
+            #                                  kernel_internal,
+            #                                  nan_interpolate,
+            #                                 )
+            comp_conv(conv, image_internal, # these have to be the same shape
+                      image_internal.shape[0],
+                      image_internal.shape[1],
+                      kernel_internal,
+                      kernel_internal.shape[0],
+                      kernel_internal.shape[1]
+                      )
+            result = conv
     elif array_internal.ndim == 3:
         if boundary == 'extend':
             result = convolve3d_boundary_extend(array_internal,
