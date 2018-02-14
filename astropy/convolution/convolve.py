@@ -408,16 +408,17 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                                 convolve3d_boundary_wrap)
 
     from numpy.ctypeslib import ndpointer
-    lib = ctypes.cdll.LoadLibrary("./dirct_conv.so")
-    fun = lib.py_comp_conv
-    fun.restype = None
-    fun.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+    lib = ctypes.cdll.LoadLibrary("/Users/jnoss/dev/py/convolve/direct_c/conv.so")
+    py_comp_conv = lib.py_comp_conv
+    py_comp_conv.restype = ctypes.c_int
+    py_comp_conv.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
                 ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
                 ctypes.c_size_t,
                 ctypes.c_size_t,
                 ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
                 ctypes.c_size_t,
-                ctypes.c_size_t]
+                ctypes.c_size_t,
+                ctypes.c_bool]
 
 
     if boundary not in BOUNDARY_OPTIONS:
@@ -591,13 +592,14 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
             #                                  kernel_internal,
             #                                  nan_interpolate,
             #                                 )
-            comp_conv(conv, image_internal, # these have to be the same shape
-                      image_internal.shape[0],
-                      image_internal.shape[1],
+            print(py_comp_conv(conv, array_internal,
+                      array_internal.shape[0],
+                      array_internal.shape[1],
                       kernel_internal,
                       kernel_internal.shape[0],
-                      kernel_internal.shape[1]
-                      )
+                      kernel_internal.shape[1],
+                      nan_interpolate
+                      ))
             result = conv
     elif array_internal.ndim == 3:
         if boundary == 'extend':
