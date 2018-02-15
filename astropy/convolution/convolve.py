@@ -411,8 +411,8 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                                 convolve3d_boundary_wrap)
 
     from numpy.ctypeslib import ndpointer
-    #lib = ctypes.cdll.LoadLibrary("/Users/jnoss/dev/py/convolve/direct_c/conv.so")
-    lib = ctypes.cdll.LoadLibrary("/Users/jnoss/dev/astropy/build/lib.macosx-10.6-x86_64-3.5/conv_c.cpython-35m-darwin.so")
+    lib = ctypes.cdll.LoadLibrary("/Users/jnoss/dev/py/convolve/direct_c/conv.so")
+    #lib = ctypes.cdll.LoadLibrary("/Users/jnoss/dev/astropy/build/lib.macosx-10.6-x86_64-3.5/conv_c.cpython-35m-darwin.so")
     py_comp_conv = lib.py_comp_conv
     py_comp_conv.restype = ctypes.c_int
     py_comp_conv.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),

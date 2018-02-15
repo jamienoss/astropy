@@ -209,9 +209,9 @@ inline __attribute__((always_inline)) void comp_conv_inline(Array * conv, const 
     const unsigned wky_plus_1 = wky + 1;
     unsigned int i_plus_wkx_plus_1, j_plus_wky_plus_1;
     unsigned int nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j;
-    int iimin, iimax, jjmin, jjmax;
+    //int iimin, iimax, jjmin, jjmax;
     
-    double top, bot, ker, val;
+    double top, bot=0., ker, val;
     
     
 #ifdef _OPENMP
@@ -232,7 +232,7 @@ inline __attribute__((always_inline)) void comp_conv_inline(Array * conv, const 
             nky_minus_1_minus_wky_plus_j = nky_minus_1 - wky_minus_j; // nky - 1 - (wky - i)
             top = 0.;
             if (nan_interpolate)
-                bot = 0;
+                bot = 0.;
             for (unsigned ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
             {
                 ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
