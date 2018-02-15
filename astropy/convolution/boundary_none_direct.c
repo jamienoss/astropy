@@ -30,10 +30,6 @@ double timeDiff(clock_t start);
 int py_comp_conv(double * _conv, const double * _f, const unsigned nx, const unsigned ny,
         const double * _g, const unsigned nkx, const unsigned nky, const bool nan_interpolate)
 {
-    
-    char a[10];
-    printf("%s",a[100]);
-    return 99;
     Array conv = {.nx = nx, .data = _conv};
     
     ConstArray f = {.nx = nx, .data = _f};
