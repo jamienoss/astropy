@@ -16,6 +16,8 @@ from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from ..modeling.core import _CompoundModelMeta
 
 import ctypes
+import faulthandler
+faulthandler.enable()
 
 
 # Disabling all doctests in this module until a better way of handling warnings
