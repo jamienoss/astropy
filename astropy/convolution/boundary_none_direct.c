@@ -4,10 +4,15 @@
 #include <stdio.h>
 #include <assert.h>
 #include <time.h>
+#include <python.h>
+
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+
+
+
 
 typedef struct {
     unsigned nx;
@@ -46,7 +51,7 @@ int comp_conv(Array * conv, const ConstArray * f, const ConstArray * g, const bo
         comp_conv_inline(conv, f, g, true);
     else
         comp_conv_inline(conv, f, g, false);
-    return 1;
+    return 22;
 }
 
 void writeBin(const Array * array, const char * fname)
