@@ -12,7 +12,7 @@ SRC_FILES = [os.path.join(CONV_PKGDIR, filename)
 
 def get_extensions():
     conv_c_ext = Extension(name='conv_c', sources=SRC_FILES,
-                 extra_compile_args=['-O3', '-fPIC', '-fopenmp'],
+                 extra_compile_args=['-O3', '-fPIC'],
                  language='c')
 
     add_openmp_flags_if_available(conv_c_ext)

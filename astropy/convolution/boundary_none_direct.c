@@ -14,6 +14,9 @@
 
 
 
+
+
+
 typedef struct {
     unsigned nx;
     double * data;
