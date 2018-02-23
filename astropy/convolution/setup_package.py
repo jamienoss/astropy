@@ -4,17 +4,16 @@ import os
 from distutils.extension import Extension
 from astropy_helpers.openmp_helpers import add_openmp_flags_if_available
 
-CONV_PKGDIR = os.path.relpath(os.path.dirname(__file__))
+CONVOLVE_PKGDIR = os.path.relpath(os.path.dirname(__file__))
 
-#SRC_FILES = glob.glob(os.path.join(CONV_SRC, '*.c'))
-SRC_FILES = [os.path.join(CONV_PKGDIR, filename)
+SRC_FILES = [os.path.join(CONVOLVE_PKGDIR, filename)
               for filename in ['boundary_none_direct.c']]
 
 def get_extensions():
-    conv_c_ext = Extension(name='conv_c', sources=SRC_FILES,
+    c_convolve_ext = Extension(name='c_convolve', sources=SRC_FILES,
                  extra_compile_args=['-O3', '-fPIC'],
                  language='c')
 
-    add_openmp_flags_if_available(conv_c_ext)
+    add_openmp_flags_if_available(c_convolve_ext)
     
-    return [conv_c_ext]
+    return [c_convolve_ext]

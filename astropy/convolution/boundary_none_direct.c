@@ -11,12 +11,6 @@
 #include <omp.h>
 #endif
 
-
-
-
-
-
-
 typedef struct {
     unsigned nx;
     double * data;
@@ -35,7 +29,7 @@ int py_comp_conv(double * _conv, const double * _f, const unsigned nx, const uns
 void writeBin(const Array * array, const char * fname);
 double timeDiff(clock_t start);
 
-int py_comp_conv(double * _conv, const double * _f, const unsigned nx, const unsigned ny,
+int convolve2d_boundary_none_c(double * _conv, const double * _f, const unsigned nx, const unsigned ny,
         const double * _g, const unsigned nkx, const unsigned nky, const bool nan_interpolate)
 {
     Array conv = {.nx = nx, .data = _conv};

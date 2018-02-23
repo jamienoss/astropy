@@ -23,19 +23,14 @@ faulthandler.enable()
 import os
 import glob
 from numpy.ctypeslib import ndpointer
-#lib = ctypes.cdll.LoadLibrary("/Users/jamie/dev/py/convolve/direct_c/conv.so")
-#lib = ctypes.cdll.LoadLibrary("/Users/jnoss/dev/astropy/build/lib.macosx-10.6-x86_64-3.5/conv_c.cpython-35m-darwin.so")
-#lib = ctypes.cdll.LoadLibrary("/Users/jamie/dev/astropy/build/lib.macosx-10.6-x86_64-3.5/conv_c.cpython-35m-darwin.so")
-lib_glob = 'conv_c*.so'
+lib_glob = 'c_convolve*.so'
 lib_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../../')
 lib_path = glob.glob(os.path.join(lib_path, lib_glob))[0]
 
-#lib_path='conv.so'
-print(lib_path)
 lib = ctypes.cdll.LoadLibrary(lib_path)
-py_comp_conv = lib.py_comp_conv
-py_comp_conv.restype = ctypes.c_int
-py_comp_conv.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+convolve2d_boundary_none_c = lib.convolve2d_boundary_none_c
+convolve2d_boundary_none_c.restype = None
+convolve2d_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
             ctypes.c_size_t,
             ctypes.c_size_t,
@@ -45,7 +40,6 @@ py_comp_conv.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
             ctypes.c_bool]
 
 
-#import conv_c
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
@@ -421,7 +415,6 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     '''
     from .boundary_none import (convolve1d_boundary_none,
                                 convolve2d_boundary_none,
-                                convolve2d_boundary_none_dev,
                                 convolve3d_boundary_none)
 
     from .boundary_extend import (convolve1d_boundary_extend,
@@ -604,19 +597,14 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                                               renormalize_by_kernel,
                                              )
         elif boundary is None:
-            #result = convolve2d_boundary_none_dev(array_internal,
-            #                                  kernel_internal,
-            #                                  nan_interpolate,
-            #                                 )
-            
-            print(py_comp_conv(conv, array_internal,
+            convolve2d_boundary_none_c(conv, array_internal,
                       array_internal.shape[0],
                       array_internal.shape[1],
                       kernel_internal,
                       kernel_internal.shape[0],
                       kernel_internal.shape[1],
                       nan_interpolate
-                      ))
+                      )
             result = conv
     elif array_internal.ndim == 3:
         if boundary == 'extend':
