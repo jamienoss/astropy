@@ -48,6 +48,32 @@ convolve3d_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONT
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t, ctypes.c_size_t,
             ctypes.c_bool,
             ctypes.c_uint]
+
+convolve1d_boundary_fill_c = lib.convolve1d_boundary_fill_c
+convolve1d_boundary_fill_c.restype = None
+convolve1d_boundary_fill_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
+            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t,
+            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t,
+            ctypes.c_double,
+            ctypes.c_bool,
+            ctypes.c_uint]
+convolve2d_boundary_fill_c = lib.convolve2d_boundary_fill_c
+convolve2d_boundary_fill_c.restype = None
+convolve2d_boundary_fill_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
+            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t,
+            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t,
+            ctypes.c_double,
+            ctypes.c_bool,
+            ctypes.c_uint]
+convolve3d_boundary_fill_c = lib.convolve3d_boundary_fill_c
+convolve3d_boundary_fill_c.restype = None
+convolve3d_boundary_fill_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
+            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t, ctypes.c_size_t,
+            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t, ctypes.c_size_t,
+            ctypes.c_double,
+            ctypes.c_bool,
+            ctypes.c_uint]
+
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
 __doctest_skip__ = ['*']
@@ -429,10 +455,6 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                                   convolve2d_boundary_extend,
                                   convolve3d_boundary_extend)
 
-    from .boundary_fill import (convolve1d_boundary_fill,
-                                convolve2d_boundary_fill,
-                                convolve3d_boundary_fill)
-
     from .boundary_wrap import (convolve1d_boundary_wrap,
                                 convolve2d_boundary_wrap,
                                 convolve3d_boundary_wrap)
@@ -477,11 +499,11 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
         # return new kernel instance
         if isinstance(array, Kernel):
             if isinstance(array, Kernel1D) and isinstance(kernel, Kernel1D):
-                new_array = convolve1d_boundary_fill(array.array, kernel.array,
+                new_array = convolve1d_boundary_fill_c(array.array, kernel.array,
                                                      0, True)
                 new_kernel = Kernel1D(array=new_array)
             elif isinstance(array, Kernel2D) and isinstance(kernel, Kernel2D):
-                new_array = convolve2d_boundary_fill(array.array, kernel.array,
+                new_array = convolve2d_boundary_fill_c(array.array, kernel.array,
                                                      0, True)
                 new_kernel = Kernel2D(array=new_array)
             else:
@@ -492,7 +514,6 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
         kernel = kernel.array
 
     # Check that the arguments are lists or Numpy arrays
-
     if isinstance(array, list):
         array_internal = np.array(array, dtype=float)
         array_dtype = array_internal.dtype
@@ -504,7 +525,11 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     else:
         raise TypeError("array should be a list or a Numpy array")
 
-    conv = np.zeros(array.shape, dtype=float, order='C')
+    if array_internal.ndim == 0:
+        raise Exception("cannot convolve 0-dimensional arrays")
+    elif array_internal.ndim > 3:
+        raise NotImplementedError('convolve only supports 1, 2, and 3-dimensional '
+                                  'arrays at this time')
 
     if isinstance(kernel, list):
         kernel_internal = np.array(kernel, dtype=float)
@@ -535,6 +560,16 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
         # *kernel* doesn't support NaN interpolation, so instead we just fill it
         kernel_internal = kernel.filled(fill_value)
 
+    # Check if kernel is normalizable   
+    if normalize_kernel or nan_interpolate:
+        kernel_sum = kernel_internal.sum()
+        kernel_sums_to_zero = np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
+
+        if kernel_sum < 1. / MAX_NORMALIZATION or kernel_sums_to_zero:
+            raise Exception("The kernel can't be normalized, because its sum is "
+                            "close to zero. The sum of the given kernel is < {0}"
+                            .format(1. / MAX_NORMALIZATION))
+
     # Mark the NaN values so we can replace them later if interpolate_nan is
     # not set
     if preserve_nan or nan_treatment == 'fill':
@@ -548,21 +583,11 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     # NB: np.isnan(array_internal.sum()) is fatser than np.isnan(array_internal).any()
     nan_interpolate = nan_treatment == 'interpolate' and np.isnan(array_internal.sum())
 
-    # Check if kernel is normalizable   
-    if normalize_kernel or nan_interpolate:
-        kernel_sum = kernel_internal.sum()
-        kernel_sums_to_zero = np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
-
-        if kernel_sum < 1. / MAX_NORMALIZATION or kernel_sums_to_zero:
-            raise Exception("The kernel can't be normalized, because its sum is "
-                            "close to zero. The sum of the given kernel is < {0}"
-                            .format(1. / MAX_NORMALIZATION))
-
     renormalize_by_kernel = True#not kernel_sums_to_zero
 
-    if array_internal.ndim == 0:
-        raise Exception("cannot convolve 0-dimensional arrays")
-    elif array_internal.ndim == 1:
+    result = np.zeros(array.shape, dtype=float, order='C')
+
+    if array_internal.ndim == 1:
         if boundary == 'extend':
             result = convolve1d_boundary_extend(array_internal,
                                                 kernel_internal,
@@ -577,14 +602,13 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                                               kernel_internal,
                                               renormalize_by_kernel)
         elif boundary is None:
-            convolve1d_boundary_none_c(conv, array_internal,
+            convolve1d_boundary_none_c(result, array_internal,
                       array_internal.shape[0],
                       kernel_internal,
                       kernel_internal.shape[0],
                       nan_interpolate,
                       n_threads
                       )
-            result = conv
     elif array_internal.ndim == 2:
         if boundary == 'extend':
             result = convolve2d_boundary_extend(array_internal,
@@ -603,7 +627,7 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                                               renormalize_by_kernel,
                                              )
         elif boundary is None:
-            convolve2d_boundary_none_c(conv, array_internal,
+            convolve2d_boundary_none_c(result, array_internal,
                       array_internal.shape[0],
                       array_internal.shape[1],
                       kernel_internal,
@@ -612,7 +636,6 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                       nan_interpolate,
                       n_threads
                       )
-            result = conv
     elif array_internal.ndim == 3:
         if boundary == 'extend':
             result = convolve3d_boundary_extend(array_internal,
@@ -628,7 +651,7 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                                               kernel_internal,
                                               renormalize_by_kernel)
         elif boundary is None:
-            convolve3d_boundary_none_c(conv, array_internal,
+            convolve3d_boundary_none_c(result, array_internal,
                       array_internal.shape[0],
                       array_internal.shape[1],
                       array_internal.shape[2],
@@ -639,10 +662,6 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                       nan_interpolate,
                       n_threads
                       )
-            result = conv
-    else:
-        raise NotImplementedError('convolve only supports 1, 2, and 3-dimensional '
-                                  'arrays at this time')
     
     # So far, normalization has only occured for nan_treatment == 'interpolate'
     # beacuse this had to happen within the C extension so as to ignore

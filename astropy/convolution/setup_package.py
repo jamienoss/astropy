@@ -7,7 +7,8 @@ from astropy_helpers.openmp_helpers import add_openmp_flags_if_available
 C_CONVOLVE_PKGDIR = os.path.relpath(os.path.dirname(__file__))
 
 SRC_FILES = [os.path.join(C_CONVOLVE_PKGDIR, filename)
-              for filename in ['boundary_none_direct.c']]
+              for filename in ['boundary_none_direct.c',
+                               'boundary_fill_direct.c']]
 
 def get_extensions():
     c_convolve_ext = Extension(name='c_convolve', sources=SRC_FILES,
