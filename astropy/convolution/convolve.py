@@ -27,6 +27,13 @@ lib_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../../')
 lib_path = glob.glob(os.path.join(lib_path, lib_glob))[0]
 lib = ctypes.cdll.LoadLibrary(lib_path)
 # Declare prototypes
+convolve1d_boundary_none_c = lib.convolve1d_boundary_none_c
+convolve1d_boundary_none_c.restype = None
+convolve1d_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
+            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t,
+            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t,
+            ctypes.c_bool,
+            ctypes.c_uint]
 convolve2d_boundary_none_c = lib.convolve2d_boundary_none_c
 convolve2d_boundary_none_c.restype = None
 convolve2d_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
@@ -34,7 +41,13 @@ convolve2d_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONT
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t,
             ctypes.c_bool,
             ctypes.c_uint]
-
+convolve3d_boundary_none_c = lib.convolve3d_boundary_none_c
+convolve3d_boundary_none_c.restype = None
+convolve3d_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
+            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t, ctypes.c_size_t,
+            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t, ctypes.c_size_t,
+            ctypes.c_bool,
+            ctypes.c_uint]
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
 __doctest_skip__ = ['*']
@@ -411,9 +424,6 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     For masked arrays, masked values are treated as NaNs.  The convolution
     is always done at ``numpy.float`` precision.
     '''
-    from .boundary_none import (convolve1d_boundary_none,
-                                convolve2d_boundary_none,
-                                convolve3d_boundary_none)
 
     from .boundary_extend import (convolve1d_boundary_extend,
                                   convolve2d_boundary_extend,
@@ -567,9 +577,14 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                                               kernel_internal,
                                               renormalize_by_kernel)
         elif boundary is None:
-            result = convolve1d_boundary_none(array_internal,
-                                              kernel_internal,
-                                              renormalize_by_kernel)
+            convolve1d_boundary_none_c(conv, array_internal,
+                      array_internal.shape[0],
+                      kernel_internal,
+                      kernel_internal.shape[0],
+                      nan_interpolate,
+                      n_threads
+                      )
+            result = conv
     elif array_internal.ndim == 2:
         if boundary == 'extend':
             result = convolve2d_boundary_extend(array_internal,
@@ -613,9 +628,18 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                                               kernel_internal,
                                               renormalize_by_kernel)
         elif boundary is None:
-            result = convolve3d_boundary_none(array_internal,
-                                              kernel_internal,
-                                              renormalize_by_kernel)
+            convolve3d_boundary_none_c(conv, array_internal,
+                      array_internal.shape[0],
+                      array_internal.shape[1],
+                      array_internal.shape[2],
+                      kernel_internal,
+                      kernel_internal.shape[0],
+                      kernel_internal.shape[1],
+                      kernel_internal.shape[2],
+                      nan_interpolate,
+                      n_threads
+                      )
+            result = conv
     else:
         raise NotImplementedError('convolve only supports 1, 2, and 3-dimensional '
                                   'arrays at this time')
