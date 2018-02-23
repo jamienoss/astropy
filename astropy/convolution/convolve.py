@@ -80,6 +80,16 @@ __doctest_skip__ = ['*']
 
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 
+
+def _has_odd_shape(array):
+    for n in array.shape:
+        if n % 2:
+            return True
+    return False 
+            
+def _raise_even_kernel():
+    raise ValueError("Convolution kernel must have odd dimensions")     
+
 @support_nddata(data='array')
 def convolve(array, kernel, boundary='fill', fill_value=0.,
              nan_treatment='interpolate', normalize_kernel=True, mask=None,
@@ -481,7 +491,7 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     if n_threads == 0:
         n_threads = total_cpus
 
-    # The cython routines all need float type inputs (so, a particular
+    # The C routines all need float type inputs (so, a particular
     # bit size, endianness, etc.).  So we have to convert, which also
     # has the effect of making copies so we don't modify the inputs.
     # After this, the variables we work with will be array_internal, and
@@ -491,10 +501,12 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     # just always push those as float.
     # It is always necessary to make a copy of kernel (since it is modified),
     # but, if we just so happen to be lucky enough to have the input array
-    # have exactly the desired type, we just alias to array_internal
+    # have exactly the desired type, we just alias to array_internal      
 
     # Check if kernel is kernel instance
     if isinstance(kernel, Kernel):
+        if not _has_odd_shape(kernel):
+            _raise_even_kernel()
         # Check if array is also kernel instance, if so convolve and
         # return new kernel instance
         if isinstance(array, Kernel):
@@ -532,8 +544,12 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                                   'arrays at this time')
 
     if isinstance(kernel, list):
+        if len(kernel) % 2:
+            _raise_even_kernel()
         kernel_internal = np.array(kernel, dtype=float)
     elif isinstance(kernel, np.ndarray):
+        if not _has_odd_shape(kernel):
+            _raise_even_kernel()
         # Note this always makes a copy, since we will be modifying it
         kernel_internal = kernel.astype(float)
     else:
@@ -560,6 +576,12 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
         # *kernel* doesn't support NaN interpolation, so instead we just fill it
         kernel_internal = kernel.filled(fill_value)
 
+    # nan interpolation significantly slows down the C convolution
+    # compuatation. Since nan_treatment = 'interpolate', is the default
+    # check whether it is even needed, if not, don't interpolate.
+    # NB: np.isnan(array_internal.sum()) is fatser than np.isnan(array_internal).any()
+    nan_interpolate = nan_treatment == 'interpolate' and np.isnan(array_internal.sum())
+
     # Check if kernel is normalizable   
     if normalize_kernel or nan_interpolate:
         kernel_sum = kernel_internal.sum()
@@ -576,12 +598,6 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
         initially_nan = np.isnan(array_internal)
         if nan_treatment:
             array_internal[initially_nan] = fill_value
-
-    # nan interpolation significantly slows down the cython convolution
-    # compuatation. Since nan_treatment = 'interpolate', is the default
-    # check whether it is even needed, if not, don't interpolate.
-    # NB: np.isnan(array_internal.sum()) is fatser than np.isnan(array_internal).any()
-    nan_interpolate = nan_treatment == 'interpolate' and np.isnan(array_internal.sum())
 
     renormalize_by_kernel = True#not kernel_sums_to_zero
 
