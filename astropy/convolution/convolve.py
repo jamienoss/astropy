@@ -2,7 +2,12 @@
 
 import warnings
 
+import os
+import glob
+import ctypes
+import faulthandler
 import numpy as np
+from numpy.ctypeslib import ndpointer
 from functools import partial
 
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
@@ -14,31 +19,20 @@ from ..nddata import support_nddata
 from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from ..modeling.core import _CompoundModelMeta
 
-import ctypes
-import faulthandler
 faulthandler.enable()
 
-
-import os
-import glob
-from numpy.ctypeslib import ndpointer
+# Find and load C convolution library
 lib_glob = 'c_convolve*.so'
 lib_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../../')
 lib_path = glob.glob(os.path.join(lib_path, lib_glob))[0]
-
 lib = ctypes.cdll.LoadLibrary(lib_path)
+# Declare prototypes
 convolve2d_boundary_none_c = lib.convolve2d_boundary_none_c
 convolve2d_boundary_none_c.restype = None
-convolve2d_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-            ctypes.c_size_t,
-            ctypes.c_size_t,
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-            ctypes.c_size_t,
-            ctypes.c_size_t,
+convolve2d_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
+            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t,
+            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t,
             ctypes.c_bool]
-
-
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
@@ -525,36 +519,15 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     # NB: np.isnan(array_internal.sum()) is fatser than np.isnan(array_internal).any()
     nan_interpolate = nan_treatment == 'interpolate' and np.isnan(array_internal.sum())
 
-    #if nan_treatment == 'fill':
-    #    initially_nan = np.isnan(array_internal)
-    #    array_internal[initially_nan] = fill_value
-
-    # Because the Cython routines have to normalize the kernel on the fly, we
-    # explicitly normalize the kernel here, and then scale the image at the
-    # end if normalization was not requested.
+    # Check if kernel is normalizable   
     if normalize_kernel or nan_interpolate:
         kernel_sum = kernel_internal.sum()
         kernel_sums_to_zero = np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
 
-        if kernel_sum < 1. / MAX_NORMALIZATION or kernel_sums_to_zero:# and normalize_kernel:
+        if kernel_sum < 1. / MAX_NORMALIZATION or kernel_sums_to_zero:
             raise Exception("The kernel can't be normalized, because its sum is "
                             "close to zero. The sum of the given kernel is < {0}"
                             .format(1. / MAX_NORMALIZATION))
-
-    #if normalize_kernel and not kernel_sums_to_zero:
-    #    kernel_internal /= kernel_sum
-    #else:
-    #    kernel_internal = kernel
-
-        #if kernel_sums_to_zero:
-        #    kernel_internal = kernel
-        #else:
-        #    kernel_internal /= kernel_sum
-
-    #if not kernel_sums_to_zero:
-    #    kernel_internal /= kernel_sum
-    #else:
-    #    kernel_internal = kernel
 
     renormalize_by_kernel = True#not kernel_sums_to_zero
 
@@ -626,12 +599,9 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     else:
         raise NotImplementedError('convolve only supports 1, 2, and 3-dimensional '
                                   'arrays at this time')
-
-    # If normalization was not requested, we need to scale the array (since
-    # the kernel is effectively normalized within the cython functions)
     
     # So far, normalization has only occured for nan_treatment == 'interpolate'
-    # beacuse this had to happen within the Cython extension so as to ignore
+    # beacuse this had to happen within the C extension so as to ignore
     # any NaNs
     if normalize_kernel:
         if not nan_interpolate:
@@ -639,12 +609,6 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     else:
         if nan_interpolate:
             result *= kernel_sum
-    
-    #if not normalize_kernel and not kernel_sums_to_zero:
-    #    result *= kernel_sum
-
-    #if normalize_kernel and not kernel_sums_to_zero:
-    #    result *= kernel_sum
 
     if preserve_nan:
         result[initially_nan] = np.nan

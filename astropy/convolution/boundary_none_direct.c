@@ -6,22 +6,28 @@
 #endif
 
 void convolve2d_boundary_none_c(double * const result,
-		const double * const f, const unsigned nx, const unsigned ny,
-		const double * const g, const unsigned nkx, const unsigned nky,
+		const double * const f, const size_t nx, const size_t ny,
+		const double * const g, const size_t nkx, const size_t nky,
 		const bool nan_interpolate);
 void compute_convolution(double * const result,
-		const double * const f, const unsigned nx, const unsigned ny,
-		const double * const g, const unsigned nkx, const unsigned nky,
+		const double * const f, const size_t nx, const size_t ny,
+		const double * const g, const size_t nkx, const size_t nky,
 		const bool nan_interpolate);
 
 void convolve2d_boundary_none_c(double * const result,
-		const double * const f, const unsigned nx, const unsigned ny,
-		const double * const g, const unsigned nkx, const unsigned nky,
+		const double * const f, const size_t nx, const size_t ny,
+		const double * const g, const size_t nkx, const size_t nky,
 		const bool nan_interpolate)
 {
 	if (!result || !f || !g)
 		return;
 
+	// The preprocessor will inline compute_convolution(), effectively
+	// expanding the two logical branches, replacing nan_interpolate
+	// for their literal equivalents. The corresponding conditionals
+	// within compute_convolution() will then be optimized away, this
+	// being the goal - removing the unnecessary conditionals from
+	// the loops without duplicating code.
     if (nan_interpolate)
     	compute_convolution(result, f, nx, ny, g, nkx, nky, true);
     else
@@ -29,8 +35,8 @@ void convolve2d_boundary_none_c(double * const result,
 }
 
 inline __attribute__((always_inline)) void compute_convolution(double * const result,
-		const double * const f, const unsigned nx, const unsigned ny,
-		const double * const g, const unsigned nkx, const unsigned nky,
+		const double * const f, const size_t nx, const size_t ny,
+		const double * const g, const size_t nkx, const size_t nky,
 		const bool nan_interpolate)
 {
     //thread globals
@@ -56,7 +62,6 @@ inline __attribute__((always_inline)) void compute_convolution(double * const re
     unsigned int nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j;
     
     double top, bot=0., ker, val;
-    
     
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
