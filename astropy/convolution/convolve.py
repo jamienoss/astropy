@@ -2,14 +2,14 @@
 
 import warnings
 
-import os
-import glob
 import ctypes
+import os
 import faulthandler
+import glob
 import numpy as np
 from numpy.ctypeslib import ndpointer
 from functools import partial
-
+from multiprocessing import cpu_count
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.console import human_file_size
@@ -32,7 +32,8 @@ convolve2d_boundary_none_c.restype = None
 convolve2d_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t,
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t,
-            ctypes.c_bool]
+            ctypes.c_bool,
+            ctypes.c_uint]
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
@@ -331,7 +332,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 @support_nddata(data='array')
 def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
              nan_treatment='interpolate', normalize_kernel=True, mask=None,
-             preserve_nan=False, normalization_zero_tol=1e-8):
+             preserve_nan=False, normalization_zero_tol=1e-8, n_threads=0):
     '''
     Convolve an array with a kernel.
 
@@ -391,6 +392,10 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
         The absolute tolerance on whether the kernel is different than zero.
         If the kernel sums to zero to within this precision, it cannot be
         normalized. Default is "1e-8".
+    n_threads : int
+        The number of threads to use (default 0). `0` => use all. There is no
+        limit, be cautious if over commmiting resources. An exception is
+        raised for negative values.
 
     Returns
     -------
@@ -429,6 +434,20 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
 
     if nan_treatment not in ('interpolate', 'fill'):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
+
+    if not isinstance(n_threads, int) or n_threads < 0:
+        raise ValueError("n_threads must be a positive integer")
+
+    total_cpus = cpu_count()
+    if n_threads > total_cpus:
+        warnings.warn("n_threads is greater than the total number "
+                      "of CPUs: {0}. Over commiting threads is unlikely "
+                      "to boost convolution performance "
+                      "and may lock-up your machine.".format(total_cpus),
+                      AstropyUserWarning)
+        
+    if n_threads == 0:
+        n_threads = total_cpus
 
     # The cython routines all need float type inputs (so, a particular
     # bit size, endianness, etc.).  So we have to convert, which also
@@ -575,7 +594,8 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                       kernel_internal,
                       kernel_internal.shape[0],
                       kernel_internal.shape[1],
-                      nan_interpolate
+                      nan_interpolate,
+                      n_threads
                       )
             result = conv
     elif array_internal.ndim == 3:

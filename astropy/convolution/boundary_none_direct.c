@@ -8,16 +8,19 @@
 void convolve2d_boundary_none_c(double * const result,
 		const double * const f, const size_t nx, const size_t ny,
 		const double * const g, const size_t nkx, const size_t nky,
-		const bool nan_interpolate);
+		const bool nan_interpolate,
+		const unsigned n_threads);
 void compute_convolution(double * const result,
 		const double * const f, const size_t nx, const size_t ny,
 		const double * const g, const size_t nkx, const size_t nky,
-		const bool nan_interpolate);
+		const bool nan_interpolate,
+		const unsigned n_threads);
 
 void convolve2d_boundary_none_c(double * const result,
 		const double * const f, const size_t nx, const size_t ny,
 		const double * const g, const size_t nkx, const size_t nky,
-		const bool nan_interpolate)
+		const bool nan_interpolate,
+		const unsigned n_threads)
 {
 	if (!result || !f || !g)
 		return;
@@ -29,37 +32,39 @@ void convolve2d_boundary_none_c(double * const result,
 	// being the goal - removing the unnecessary conditionals from
 	// the loops without duplicating code.
     if (nan_interpolate)
-    	compute_convolution(result, f, nx, ny, g, nkx, nky, true);
+        compute_convolution(result, f, nx, ny, g, nkx, nky, true, n_threads);
     else
-    	compute_convolution(result, f, nx, ny, g, nkx, nky, false);
+        compute_convolution(result, f, nx, ny, g, nkx, nky, false, n_threads);
 }
 
 inline __attribute__((always_inline)) void compute_convolution(double * const result,
 		const double * const f, const size_t nx, const size_t ny,
 		const double * const g, const size_t nkx, const size_t nky,
-		const bool nan_interpolate)
+		const bool nan_interpolate,
+		const unsigned n_threads)
 {
-    //thread globals
+    // Thread globals
     const unsigned wkx = nkx / 2;
     const unsigned wky = nky / 2;
 
 #ifdef _OPENMP
+    omp_set_num_threads(n_threads); // Set number of threads to use
 #pragma omp parallel shared(result, f, g) // All other consts are declared shared by default
-    {
+    { // Code within this block is threaded
 #endif
     
-    //thread locals
-    const unsigned int nkx_minus_1 = nkx-1, nky_minus_1 = nky-1;
-    unsigned int wkx_minus_i, wky_minus_j;
-    unsigned int ker_i, ker_j;
-    const unsigned int nx_minus_wkx = nx - wkx;
-    const unsigned int ny_minus_wky = ny - wky;
-    unsigned int i_minus_wkx;
+    // Thread locals
+    const unsigned nkx_minus_1 = nkx-1, nky_minus_1 = nky-1;
+    unsigned wkx_minus_i, wky_minus_j;
+    unsigned ker_i, ker_j;
+    const unsigned nx_minus_wkx = nx - wkx;
+    const unsigned ny_minus_wky = ny - wky;
+    unsigned i_minus_wkx;
     const unsigned wkx_plus_1 = wkx + 1;
-    unsigned int j_minus_wky;
+    unsigned j_minus_wky;
     const unsigned wky_plus_1 = wky + 1;
-    unsigned int i_plus_wkx_plus_1, j_plus_wky_plus_1;
-    unsigned int nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j;
+    unsigned i_plus_wkx_plus_1, j_plus_wky_plus_1;
+    unsigned nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j;
     
     double top, bot=0., ker, val;
     
