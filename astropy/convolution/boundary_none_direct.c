@@ -17,37 +17,37 @@
 
 // 1D
 void convolve1d_boundary_none_c(double * const result,
-		const double * const f, const size_t nx,
-		const double * const g, const size_t nkx,
-		const bool nan_interpolate,
-		const unsigned n_threads);
+        const double * const f, const size_t nx,
+        const double * const g, const size_t nkx,
+        const bool nan_interpolate,
+        const unsigned n_threads);
 void convolve1d_boundary_none(double * const result,
-		const double * const f, const size_t nx,
-		const double * const g, const size_t nkx,
-		const bool nan_interpolate,
-		const unsigned n_threads);
+        const double * const f, const size_t nx,
+        const double * const g, const size_t nkx,
+        const bool nan_interpolate,
+        const unsigned n_threads);
 // 2D
 void convolve2d_boundary_none_c(double * const result,
-		const double * const f, const size_t nx, const size_t ny,
-		const double * const g, const size_t nkx, const size_t nky,
-		const bool nan_interpolate,
-		const unsigned n_threads);
+        const double * const f, const size_t nx, const size_t ny,
+        const double * const g, const size_t nkx, const size_t nky,
+        const bool nan_interpolate,
+        const unsigned n_threads);
 void convolve2d_boundary_none(double * const result,
-		const double * const f, const size_t nx, const size_t ny,
-		const double * const g, const size_t nkx, const size_t nky,
-		const bool nan_interpolate,
-		const unsigned n_threads);
+        const double * const f, const size_t nx, const size_t ny,
+        const double * const g, const size_t nkx, const size_t nky,
+        const bool nan_interpolate,
+        const unsigned n_threads);
 // 3D
 void convolve3d_boundary_none_c(double * const result,
-		const double * const f, const size_t nx, const size_t ny, const size_t nz,
-		const double * const g, const size_t nkx, const size_t nky, const size_t nkz,
-		const bool nan_interpolate,
-		const unsigned n_threads);
+        const double * const f, const size_t nx, const size_t ny, const size_t nz,
+        const double * const g, const size_t nkx, const size_t nky, const size_t nkz,
+        const bool nan_interpolate,
+        const unsigned n_threads);
 void convolve3d_boundary_none(double * const result,
-		const double * const f, const size_t nx, const size_t ny, const size_t nz,
-		const double * const g, const size_t nkx, const size_t nky, const size_t nkz,
-		const bool nan_interpolate,
-		const unsigned n_threads);
+        const double * const f, const size_t nx, const size_t ny, const size_t nz,
+        const double * const g, const size_t nkx, const size_t nky, const size_t nkz,
+        const bool nan_interpolate,
+        const unsigned n_threads);
 
 // The function wrappers below are designed to take advantage of the following:
 // The preprocessor will inline compute_convolution(), effectively
@@ -58,59 +58,59 @@ void convolve3d_boundary_none(double * const result,
 // the loops without duplicating code.
 
 void convolve1d_boundary_none_c(double * const result,
-		const double * const f, const size_t nx,
-		const double * const g, const size_t nkx,
-		const bool nan_interpolate,
-		const unsigned n_threads)
+        const double * const f, const size_t nx,
+        const double * const g, const size_t nkx,
+        const bool nan_interpolate,
+        const unsigned n_threads)
 {
-	if (!result || !f || !g)
-		return;
+    if (!result || !f || !g)
+        return;
 
     if (nan_interpolate)
-    	convolve1d_boundary_none(result, f, nx, g, nkx, true, n_threads);
+        convolve1d_boundary_none(result, f, nx, g, nkx, true, n_threads);
     else
-    	convolve1d_boundary_none(result, f, nx, g, nkx, false, n_threads);
+        convolve1d_boundary_none(result, f, nx, g, nkx, false, n_threads);
 }
 
 void convolve2d_boundary_none_c(double * const result,
-		const double * const f, const size_t nx, const size_t ny,
-		const double * const g, const size_t nkx, const size_t nky,
-		const bool nan_interpolate,
-		const unsigned n_threads)
+        const double * const f, const size_t nx, const size_t ny,
+        const double * const g, const size_t nkx, const size_t nky,
+        const bool nan_interpolate,
+        const unsigned n_threads)
 {
-	if (!result || !f || !g)
-		return;
+    if (!result || !f || !g)
+        return;
 
     if (nan_interpolate)
-    	convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, true, n_threads);
+        convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, true, n_threads);
     else
-    	convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, false, n_threads);
+        convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, false, n_threads);
 }
 
 void convolve3d_boundary_none_c(double * const result,
-		const double * const f, const size_t nx, const size_t ny, const size_t nz,
-		const double * const g, const size_t nkx, const size_t nky, const size_t nkz,
-		const bool nan_interpolate,
-		const unsigned n_threads)
+        const double * const f, const size_t nx, const size_t ny, const size_t nz,
+        const double * const g, const size_t nkx, const size_t nky, const size_t nkz,
+        const bool nan_interpolate,
+        const unsigned n_threads)
 {
-	if (!result || !f || !g)
-		return;
+    if (!result || !f || !g)
+        return;
 
     if (nan_interpolate)
-    	convolve3d_boundary_none(result, f, nx, ny, nz, g, nkx, nky, nkz, true, n_threads);
+        convolve3d_boundary_none(result, f, nx, ny, nz, g, nkx, nky, nkz, true, n_threads);
     else
-    	convolve3d_boundary_none(result, f, nx, ny, nz, g, nkx, nky, nkz, false, n_threads);
+        convolve3d_boundary_none(result, f, nx, ny, nz, g, nkx, nky, nkz, false, n_threads);
 }
 
 // 1D
 inline __attribute__((always_inline)) void convolve1d_boundary_none(double * const result,
-		const double * const f, const size_t nx,
-		const double * const g, const size_t nkx,
-		const bool nan_interpolate,
-		const unsigned n_threads)
+        const double * const f, const size_t nx,
+        const double * const g, const size_t nkx,
+        const bool nan_interpolate,
+        const unsigned n_threads)
 {
-	if (!result || !f || !g)
-		return;
+    if (!result || !f || !g)
+        return;
 
     // Thread globals
     const unsigned wkx = nkx / 2;
@@ -143,35 +143,35 @@ inline __attribute__((always_inline)) void convolve1d_boundary_none(double * con
         i_plus_wkx_plus_1 = i + wkx_plus_1; // i + wkx + 1
         nkx_minus_1_minus_wkx_plus_i = nkx_minus_1 - wkx_minus_i; // nkx - 1 - (wkx - i)
 
-		top = 0.;
-		if (nan_interpolate)
-			bot = 0.;
-		for (unsigned ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
-		{
-			ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
-			val = f[ii];
-			ker = g[ker_i];
-			if (nan_interpolate)
-			{
-				if (!isnan(val))
-				{
-					top += val * ker;
-					bot += ker;
-				}
-			}
-			else
-				top += val * ker;
-		}
+        top = 0.;
+        if (nan_interpolate)
+            bot = 0.;
+        for (unsigned ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
+        {
+            ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
+            val = f[ii];
+            ker = g[ker_i];
+            if (nan_interpolate)
+            {
+                if (!isnan(val))
+                {
+                    top += val * ker;
+                    bot += ker;
+                }
+            }
+            else
+                top += val * ker;
+        }
 
-		if (nan_interpolate)
-		{
-			if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
-				result[i]  = f[i] ;
-			else
-				result[i]  = top / bot;
-		}
-		else
-			result[i] = top;
+        if (nan_interpolate)
+        {
+            if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
+                result[i]  = f[i] ;
+            else
+                result[i]  = top / bot;
+        }
+        else
+            result[i] = top;
     }
 #ifdef _OPENMP
     }//end parallel scope
@@ -180,13 +180,13 @@ inline __attribute__((always_inline)) void convolve1d_boundary_none(double * con
 
 // 2D
 inline __attribute__((always_inline)) void convolve2d_boundary_none(double * const result,
-		const double * const f, const size_t nx, const size_t ny,
-		const double * const g, const size_t nkx, const size_t nky,
-		const bool nan_interpolate,
-		const unsigned n_threads)
+        const double * const f, const size_t nx, const size_t ny,
+        const double * const g, const size_t nkx, const size_t nky,
+        const bool nan_interpolate,
+        const unsigned n_threads)
 {
-	if (!result || !f || !g)
-		return;
+    if (!result || !f || !g)
+        return;
 
     // Thread globals
     const unsigned wkx = nkx / 2;
@@ -255,12 +255,12 @@ inline __attribute__((always_inline)) void convolve2d_boundary_none(double * con
             if (nan_interpolate)
             {
                 if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
-                	result[i*ny + j]  = f[i*ny + j] ;
+                    result[i*ny + j]  = f[i*ny + j] ;
                 else
-                	result[i*ny + j]  = top / bot;
+                    result[i*ny + j]  = top / bot;
             }
             else
-            	result[i*ny + j] = top;
+                result[i*ny + j] = top;
         }
     }
 #ifdef _OPENMP
@@ -270,13 +270,13 @@ inline __attribute__((always_inline)) void convolve2d_boundary_none(double * con
 
 // 3D
 inline __attribute__((always_inline)) void convolve3d_boundary_none(double * const result,
-		const double * const f, const size_t nx, const size_t ny, const size_t nz,
-		const double * const g, const size_t nkx, const size_t nky, const size_t nkz,
-		const bool nan_interpolate,
-		const unsigned n_threads)
+        const double * const f, const size_t nx, const size_t ny, const size_t nz,
+        const double * const g, const size_t nkx, const size_t nky, const size_t nkz,
+        const bool nan_interpolate,
+        const unsigned n_threads)
 {
-	if (!result || !f || !g)
-		return;
+    if (!result || !f || !g)
+        return;
 
     // Thread globals
     const unsigned wkx = nkx / 2;
@@ -324,48 +324,48 @@ inline __attribute__((always_inline)) void convolve3d_boundary_none(double * con
 
             for (unsigned k = wkz; k < nz_minus_wkz; ++k)
             {
-            	wkz_minus_k = wkz - k; // wkz - k
-            	k_minus_wkz = k - wkz; // k - wkz
-            	k_plus_wkz_plus_1 = k + wkz_plus_1; // k + wkz + 1
-            	nkz_minus_1_minus_wkz_plus_k = nkz_minus_1 - wkz_minus_k; // nkz - 1 - (wkz - i)
+                wkz_minus_k = wkz - k; // wkz - k
+                k_minus_wkz = k - wkz; // k - wkz
+                k_plus_wkz_plus_1 = k + wkz_plus_1; // k + wkz + 1
+                nkz_minus_1_minus_wkz_plus_k = nkz_minus_1 - wkz_minus_k; // nkz - 1 - (wkz - i)
 
-				top = 0.;
-				if (nan_interpolate)
-					bot = 0.;
-				for (unsigned ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
-				{
-					ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
-					for (unsigned jj = j_minus_wky; jj < j_plus_wky_plus_1; ++jj)
-					{
-						ker_j = nky_minus_1_minus_wky_plus_j - jj; // nky - 1 - (wky + jj - j)
-						for (unsigned kk = k_minus_wkz; kk < k_plus_wkz_plus_1; ++kk)
-						{
-							ker_k = nkz_minus_1_minus_wkz_plus_k - kk; // nkz - 1 - (wkz + kk - k)
+                top = 0.;
+                if (nan_interpolate)
+                    bot = 0.;
+                for (unsigned ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
+                {
+                    ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
+                    for (unsigned jj = j_minus_wky; jj < j_plus_wky_plus_1; ++jj)
+                    {
+                        ker_j = nky_minus_1_minus_wky_plus_j - jj; // nky - 1 - (wky + jj - j)
+                        for (unsigned kk = k_minus_wkz; kk < k_plus_wkz_plus_1; ++kk)
+                        {
+                            ker_k = nkz_minus_1_minus_wkz_plus_k - kk; // nkz - 1 - (wkz + kk - k)
 
-							val = f[(ii*ny + jj)*nz + kk]; //[ii, jj, kk];
-							ker = g[(ker_i*nky + ker_j)*nkz + ker_k]; // [ker_i, ker_j, ker_k];
-							if (nan_interpolate)
-							{
-								if (!isnan(val))
-								{
-									top += val * ker;
-									bot += ker;
-								}
-							}
-							else
-								top += val * ker;
-						}
-					}
-				}
-				if (nan_interpolate)
-				{
-					if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
-						result[(i*ny + j)*nz + k]  = f[(i*ny + j)*nz + k] ;
-					else
-						result[(i*ny + j)*nz + k]  = top / bot;
-				}
-				else
-					result[(i*ny + j)*nz + k] = top;
+                            val = f[(ii*ny + jj)*nz + kk]; //[ii, jj, kk];
+                            ker = g[(ker_i*nky + ker_j)*nkz + ker_k]; // [ker_i, ker_j, ker_k];
+                            if (nan_interpolate)
+                            {
+                                if (!isnan(val))
+                                {
+                                    top += val * ker;
+                                    bot += ker;
+                                }
+                            }
+                            else
+                                top += val * ker;
+                        }
+                    }
+                }
+                if (nan_interpolate)
+                {
+                    if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
+                        result[(i*ny + j)*nz + k]  = f[(i*ny + j)*nz + k] ;
+                    else
+                        result[(i*ny + j)*nz + k]  = top / bot;
+                }
+                else
+                    result[(i*ny + j)*nz + k] = top;
             }
         }
     }
