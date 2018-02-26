@@ -561,7 +561,7 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                         'dimensions.')
 
     # Insist the kernel be smaller than the image
-    for d in array_internal.ndim:
+    for d in range(array_internal.ndim):
         if kernel_internal.shape[d] > array_internal.shape[d]:
             raise Exception('each kernel dimension must be '
                             'smaller than the image\'s.')
@@ -615,10 +615,14 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                                                 kernel_internal,
                                                 renormalize_by_kernel)
         elif boundary == 'fill':
-            result = convolve1d_boundary_fill(array_internal,
-                                              kernel_internal,
-                                              float(fill_value),
-                                              renormalize_by_kernel)
+            convolve1d_boundary_fill_c(result, array_internal,
+                      array_internal.shape[0],
+                      kernel_internal,
+                      kernel_internal.shape[0],
+                      fill_value,
+                      nan_interpolate,
+                      n_threads
+                      )
         elif boundary == 'wrap':
             result = convolve1d_boundary_wrap(array_internal,
                                               kernel_internal,
@@ -638,11 +642,16 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                                                 renormalize_by_kernel,
                                                )
         elif boundary == 'fill':
-            result = convolve2d_boundary_fill(array_internal,
-                                              kernel_internal,
-                                              float(fill_value),
-                                              renormalize_by_kernel,
-                                             )
+            convolve2d_boundary_fill_c(result, array_internal,
+                      array_internal.shape[0],
+                      array_internal.shape[1],
+                      kernel_internal,
+                      kernel_internal.shape[0],
+                      kernel_internal.shape[1],
+                      fill_value,
+                      nan_interpolate,
+                      n_threads
+                      )
         elif boundary == 'wrap':
             result = convolve2d_boundary_wrap(array_internal,
                                               kernel_internal,
@@ -664,10 +673,18 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                                                 kernel_internal,
                                                 renormalize_by_kernel)
         elif boundary == 'fill':
-            result = convolve3d_boundary_fill(array_internal,
-                                              kernel_internal,
-                                              float(fill_value),
-                                              renormalize_by_kernel)
+            convolve3d_boundary_fill_c(result, array_internal,
+                      array_internal.shape[0],
+                      array_internal.shape[1],
+                      array_internal.shape[2],
+                      kernel_internal,
+                      kernel_internal.shape[0],
+                      kernel_internal.shape[1],
+                      kernel_internal.shape[2],
+                      fill_value,
+                      nan_interpolate,
+                      n_threads
+                      )
         elif boundary == 'wrap':
             result = convolve3d_boundary_wrap(array_internal,
                                               kernel_internal,

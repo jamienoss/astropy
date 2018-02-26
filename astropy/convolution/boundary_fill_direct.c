@@ -255,10 +255,13 @@ inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * con
                 ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
                 for (int jj = j_minus_wky; jj < (int)j_plus_wky_plus_1; ++jj)
                 {
-                	if (!fill_value_used && (jj < 0 || jj >= (int)ny))
-						val = fill_value;
-					else
-						val = f[(unsigned)ii*ny + jj];
+                	if (!fill_value_used)
+                	{
+						if (jj < 0 || jj >= (int)ny)
+							val = fill_value;
+						else
+							val = f[(unsigned)ii*ny + jj];
+                	}
                     ker_j = nky_minus_1_minus_wky_plus_j - jj; // nky - 1 - (wky + jj - j)
                     ker = g[ker_i*nky + ker_j]; // [ker_i, ker_j];
                     if (nan_interpolate)
@@ -353,24 +356,35 @@ inline __attribute__((always_inline)) void convolve3d_boundary_fill(double * con
 					bot = 0.;
 				for (int ii = i_minus_wkx; ii < (int)i_plus_wkx_plus_1; ++ii)
 				{
-					bool fill_value_used = false;
+					bool fill_value_used_ii = false;
 					if (ii < 0 || ii >= (int)nx)
 					{
 						val = fill_value;
-						fill_value_used = true;
+						fill_value_used_ii = true;
 					}
 					ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
 					for (int jj = j_minus_wky; jj < (int)j_plus_wky_plus_1; ++jj)
 					{
-
+						bool fill_value_used_jj = false;
+						if (!fill_value_used_ii)
+						{
+							if (jj < 0 || jj >= (int)ny)
+							{
+								val = fill_value;
+								fill_value_used_jj = true;
+							}
+						}
 						ker_j = nky_minus_1_minus_wky_plus_j - jj; // nky - 1 - (wky + jj - j)
 						for (int kk = k_minus_wkz; kk < (int)k_plus_wkz_plus_1; ++kk)
 						{
 							ker_k = nkz_minus_1_minus_wkz_plus_k - kk; // nkz - 1 - (wkz + kk - k)
-							if (!fill_value_used && (kk < 0 || kk >= nz))
-								val = fill_value;
-							else
-								val = f[((unsigned)ii*ny + (unsigned)jj)*nz + (unsigned)kk]; //[ii, jj, kk];
+							if (!fill_value_used_ii && !fill_value_used_jj)
+							{
+								if (kk < 0 || kk >= (int)nz)
+									val = fill_value;
+								else
+									val = f[((unsigned)ii*ny + (unsigned)jj)*nz + (unsigned)kk]; //[ii, jj, kk];
+							}
 							ker = g[(ker_i*nky + ker_j)*nkz + ker_k]; // [ker_i, ker_j, ker_k];
 							if (nan_interpolate)
 							{

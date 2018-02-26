@@ -15,6 +15,6 @@ def get_extensions():
                  extra_compile_args=['-O3', '-fPIC'],
                  language='c')
 
-    add_openmp_flags_if_available(c_convolve_ext)
+    #add_openmp_flags_if_available(c_convolve_ext)
     
     return [c_convolve_ext]
