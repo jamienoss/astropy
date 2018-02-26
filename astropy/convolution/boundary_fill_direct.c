@@ -1,3 +1,12 @@
+// Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+/*------------------------------WARNING!------------------------------
+ * The C functions below are NOT designed to be called externally to
+ * the Python function astropy/astropy/convolution/convolve.py.
+ * They do NOT include any of the required correct usage checking.
+ *------------------------------WARNING!------------------------------
+ */
+
 #include <math.h>
 #include <stdbool.h>
 
@@ -109,6 +118,8 @@ inline __attribute__((always_inline)) void convolve1d_boundary_fill(double * con
 		const bool nan_interpolate,
 		const unsigned n_threads)
 {
+	if (!result || !f || !g)
+		return;
 
     // Thread globals
     const unsigned wkx = nkx / 2;
@@ -121,21 +132,20 @@ inline __attribute__((always_inline)) void convolve1d_boundary_fill(double * con
 
     // Thread locals
     const unsigned nkx_minus_1 = nkx-1;
-    unsigned wkx_minus_i;
+    int wkx_minus_i;
     unsigned ker_i;
-    const unsigned nx_minus_wkx = nx - wkx;
-    unsigned i_minus_wkx;
+    int i_minus_wkx;
     const unsigned wkx_plus_1 = wkx + 1;
     unsigned i_plus_wkx_plus_1;
-    unsigned nkx_minus_1_minus_wkx_plus_i;
-
+    int nkx_minus_1_minus_wkx_plus_i;
     double top, bot=0., ker, val;
 
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
-    for (unsigned i = wkx; i < nx_minus_wkx; ++i)
+    for (unsigned i = 0; i < nx; ++i)
     {
+
         wkx_minus_i = wkx - i; // wkx - 1
         i_minus_wkx = i - wkx; //i - wkx
         i_plus_wkx_plus_1 = i + wkx_plus_1; // i + wkx + 1
@@ -144,10 +154,15 @@ inline __attribute__((always_inline)) void convolve1d_boundary_fill(double * con
 		top = 0.;
 		if (nan_interpolate)
 			bot = 0.;
-		for (unsigned ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
+
+		for (int ii = i_minus_wkx; ii < (int)i_plus_wkx_plus_1; ++ii)
 		{
+			if (ii < 0 || ii >= (int)nx)
+				val = fill_value;
+			else
+				val = f[(unsigned)ii];
+
 			ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
-			val = f[ii];
 			ker = g[ker_i];
 			if (nan_interpolate)
 			{
@@ -164,7 +179,7 @@ inline __attribute__((always_inline)) void convolve1d_boundary_fill(double * con
 		if (nan_interpolate)
 		{
 			if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
-				result[i]  = f[i] ;
+				result[i]  = f[i];
 			else
 				result[i]  = top / bot;
 		}
@@ -184,6 +199,9 @@ inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * con
 		const bool nan_interpolate,
 		const unsigned n_threads)
 {
+	if (!result || !f || !g)
+		return;
+
     // Thread globals
     const unsigned wkx = nkx / 2;
     const unsigned wky = nky / 2;
@@ -196,29 +214,27 @@ inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * con
     
     // Thread locals
     const unsigned nkx_minus_1 = nkx-1, nky_minus_1 = nky-1;
-    unsigned wkx_minus_i, wky_minus_j;
+    int wkx_minus_i, wky_minus_j;
     unsigned ker_i, ker_j;
-    const unsigned nx_minus_wkx = nx - wkx;
-    const unsigned ny_minus_wky = ny - wky;
-    unsigned i_minus_wkx, j_minus_wky;
+    int i_minus_wkx, j_minus_wky;
     const unsigned wkx_plus_1 = wkx + 1;
     const unsigned wky_plus_1 = wky + 1;
     unsigned i_plus_wkx_plus_1, j_plus_wky_plus_1;
-    unsigned nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j;
+    int nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j;
     
     double top, bot=0., ker, val;
     
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
-    for (unsigned i = wkx; i < nx_minus_wkx; ++i)
+    for (unsigned i = 0; i < nx; ++i)
     {
         wkx_minus_i = wkx - i; // wkx - 1
         i_minus_wkx = i - wkx; //i - wkx
         i_plus_wkx_plus_1 = i + wkx_plus_1; // i + wkx + 1
         nkx_minus_1_minus_wkx_plus_i = nkx_minus_1 - wkx_minus_i; // nkx - 1 - (wkx - i)
     
-        for (unsigned j = wky; j < ny_minus_wky; ++j)
+        for (unsigned j = 0; j < ny; ++j)
         {
             wky_minus_j = wkx - j; // wky - j
             j_minus_wky = j - wky; // j - wky
@@ -228,13 +244,22 @@ inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * con
             top = 0.;
             if (nan_interpolate)
                 bot = 0.;
-            for (unsigned ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
+            for (int ii = i_minus_wkx; ii < (int)i_plus_wkx_plus_1; ++ii)
             {
+            	bool fill_value_used = false;
+            	if (ii < 0 || ii >= (int)nx)
+            	{
+            		val = fill_value;
+            		fill_value_used = true;
+            	}
                 ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
-                for (unsigned jj = j_minus_wky; jj < j_plus_wky_plus_1; ++jj)
+                for (int jj = j_minus_wky; jj < (int)j_plus_wky_plus_1; ++jj)
                 {
+                	if (!fill_value_used && (jj < 0 || jj >= (int)ny))
+						val = fill_value;
+					else
+						val = f[(unsigned)ii*ny + jj];
                     ker_j = nky_minus_1_minus_wky_plus_j - jj; // nky - 1 - (wky + jj - j)
-                    val = f[ii*ny + jj]; //[ii, jj];
                     ker = g[ker_i*nky + ker_j]; // [ker_i, ker_j];
                     if (nan_interpolate)
                     {
@@ -272,6 +297,8 @@ inline __attribute__((always_inline)) void convolve3d_boundary_fill(double * con
 		const bool nan_interpolate,
 		const unsigned n_threads)
 {
+	if (!result || !f || !g)
+		return;
 
     // Thread globals
     const unsigned wkx = nkx / 2;
@@ -286,38 +313,35 @@ inline __attribute__((always_inline)) void convolve3d_boundary_fill(double * con
 
     // Thread locals
     const unsigned nkx_minus_1 = nkx-1, nky_minus_1 = nky-1, nkz_minus_1 = nkz-1;
-    unsigned wkx_minus_i, wky_minus_j, wkz_minus_k;
+    int wkx_minus_i, wky_minus_j, wkz_minus_k;
     unsigned ker_i, ker_j, ker_k;
-    const unsigned nx_minus_wkx = nx - wkx;
-    const unsigned ny_minus_wky = ny - wky;
-    const unsigned nz_minus_wkz = nz - wkz;
-    unsigned i_minus_wkx, j_minus_wky, k_minus_wkz;
+    int i_minus_wkx, j_minus_wky, k_minus_wkz;
     const unsigned wkx_plus_1 = wkx + 1;
     const unsigned wky_plus_1 = wky + 1;
     const unsigned wkz_plus_1 = wkz + 1;
     unsigned i_plus_wkx_plus_1, j_plus_wky_plus_1, k_plus_wkz_plus_1;
-    unsigned nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j, nkz_minus_1_minus_wkz_plus_k;
+    int nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j, nkz_minus_1_minus_wkz_plus_k;
 
     double top, bot=0., ker, val;
 
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
-    for (unsigned i = wkx; i < nx_minus_wkx; ++i)
+    for (unsigned i = 0; i < nx; ++i)
     {
         wkx_minus_i = wkx - i; // wkx - 1
         i_minus_wkx = i - wkx; //i - wkx
         i_plus_wkx_plus_1 = i + wkx_plus_1; // i + wkx + 1
         nkx_minus_1_minus_wkx_plus_i = nkx_minus_1 - wkx_minus_i; // nkx - 1 - (wkx - i)
 
-        for (unsigned j = wky; j < ny_minus_wky; ++j)
+        for (unsigned j = 0; j < ny; ++j)
         {
             wky_minus_j = wkx - j; // wky - j
             j_minus_wky = j - wky; // j - wky
             j_plus_wky_plus_1 = j + wky_plus_1; // j + wky + 1
             nky_minus_1_minus_wky_plus_j = nky_minus_1 - wky_minus_j; // nky - 1 - (wky - i)
 
-            for (unsigned k = wkz; k < nz_minus_wkz; ++k)
+            for (unsigned k = 0; k < nz; ++k)
             {
             	wkz_minus_k = wkz - k; // wkz - k
             	k_minus_wkz = k - wkz; // k - wkz
@@ -327,17 +351,26 @@ inline __attribute__((always_inline)) void convolve3d_boundary_fill(double * con
 				top = 0.;
 				if (nan_interpolate)
 					bot = 0.;
-				for (unsigned ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
+				for (int ii = i_minus_wkx; ii < (int)i_plus_wkx_plus_1; ++ii)
 				{
-					ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
-					for (unsigned jj = j_minus_wky; jj < j_plus_wky_plus_1; ++jj)
+					bool fill_value_used = false;
+					if (ii < 0 || ii >= (int)nx)
 					{
+						val = fill_value;
+						fill_value_used = true;
+					}
+					ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
+					for (int jj = j_minus_wky; jj < (int)j_plus_wky_plus_1; ++jj)
+					{
+
 						ker_j = nky_minus_1_minus_wky_plus_j - jj; // nky - 1 - (wky + jj - j)
-						for (unsigned kk = k_minus_wkz; kk < k_plus_wkz_plus_1; ++kk)
+						for (int kk = k_minus_wkz; kk < (int)k_plus_wkz_plus_1; ++kk)
 						{
 							ker_k = nkz_minus_1_minus_wkz_plus_k - kk; // nkz - 1 - (wkz + kk - k)
-
-							val = f[(ii*ny + jj)*nz + kk]; //[ii, jj, kk];
+							if (!fill_value_used && (kk < 0 || kk >= nz))
+								val = fill_value;
+							else
+								val = f[((unsigned)ii*ny + (unsigned)jj)*nz + (unsigned)kk]; //[ii, jj, kk];
 							ker = g[(ker_i*nky + ker_j)*nkz + ker_k]; // [ker_i, ker_j, ker_k];
 							if (nan_interpolate)
 							{

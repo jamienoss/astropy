@@ -1,3 +1,12 @@
+// Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+/*------------------------------WARNING!------------------------------
+ * The C functions below are NOT designed to be called externally to
+ * the Python function astropy/astropy/convolution/convolve.py.
+ * They do NOT include any of the required correct usage checking.
+ *------------------------------WARNING!------------------------------
+ */
+
 #include <math.h>
 #include <stdbool.h>
 
@@ -99,6 +108,8 @@ inline __attribute__((always_inline)) void convolve1d_boundary_none(double * con
 		const bool nan_interpolate,
 		const unsigned n_threads)
 {
+	if (!result || !f || !g)
+		return;
 
     // Thread globals
     const unsigned wkx = nkx / 2;
@@ -173,6 +184,9 @@ inline __attribute__((always_inline)) void convolve2d_boundary_none(double * con
 		const bool nan_interpolate,
 		const unsigned n_threads)
 {
+	if (!result || !f || !g)
+		return;
+
     // Thread globals
     const unsigned wkx = nkx / 2;
     const unsigned wky = nky / 2;
@@ -260,6 +274,8 @@ inline __attribute__((always_inline)) void convolve3d_boundary_none(double * con
 		const bool nan_interpolate,
 		const unsigned n_threads)
 {
+	if (!result || !f || !g)
+		return;
 
     // Thread globals
     const unsigned wkx = nkx / 2;

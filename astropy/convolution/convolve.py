@@ -560,6 +560,12 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
         raise Exception('array and kernel have differing number of '
                         'dimensions.')
 
+    # Insist the kernel be smaller than the image
+    for d in array_internal.ndim:
+        if kernel_internal.shape[d] > array_internal.shape[d]:
+            raise Exception('each kernel dimension must be '
+                            'smaller than the image\'s.')
+
     # anything that's masked must be turned into NaNs for the interpolation.
     # This requires copying the array_internal
     array_internal_copied = False
