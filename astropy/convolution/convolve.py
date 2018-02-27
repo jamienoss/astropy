@@ -612,11 +612,10 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
 
     result = np.zeros(array.shape, dtype=float, order='C')
 
-    if boundary == 'fill' and fill_value == 0.:
+    if boundary == 'fill' and fill_value == 0. and not nan_interpolate:
         skip_fill = True
     else:
-        skip_value = False
-    skip_fill = True
+        skip_fill = False
 
     if array_internal.ndim == 1:
         if boundary == 'extend':

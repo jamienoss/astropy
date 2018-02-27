@@ -106,16 +106,13 @@ void convolve3d_boundary_none_c(double * const result,
 
 // 1D
 inline __attribute__((always_inline)) void convolve1d_boundary_none(double * const result,
-        const double * const f, const size_t nx,
-        const double * const g, const size_t nkx,
-        const bool nan_interpolate,
+        const double * const f, const size_t _nx,
+        const double * const g, const size_t _nkx,
+        const bool _nan_interpolate,
         const unsigned n_threads)
 {
     if (!result || !f || !g)
         return;
-
-    // Thread globals
-    const unsigned wkx = nkx / 2;
 
 #ifdef _OPENMP
     omp_set_num_threads(n_threads); // Set number of threads to use
@@ -123,7 +120,15 @@ inline __attribute__((always_inline)) void convolve1d_boundary_none(double * con
     { // Code within this block is threaded
 #endif
 
+    // Copy these to thread locals to allow compiler to optimize (hoist/loads licm)
+    // when threaded. Without these, compile time constant conditionals may
+    // not be optimized away.
+    const size_t nx = nx;
+    const size_t nkx = _nkx;
+    const bool nan_interpolate = _nan_interpolate;
+
     // Thread locals
+    const unsigned wkx = nkx / 2;
     const unsigned nkx_minus_1 = nkx-1;
     unsigned wkx_minus_i;
     unsigned ker_i;
@@ -182,25 +187,30 @@ inline __attribute__((always_inline)) void convolve1d_boundary_none(double * con
 
 // 2D
 inline __attribute__((always_inline)) void convolve2d_boundary_none(double * const result,
-        const double * const f, const size_t nx, const size_t ny,
-        const double * const g, const size_t nkx, const size_t nky,
-        const bool nan_interpolate,
+        const double * const f, const size_t _nx, const size_t _ny,
+        const double * const g, const size_t _nkx, const size_t _nky,
+        const bool _nan_interpolate,
         const unsigned n_threads)
 {
     if (!result || !f || !g)
         return;
-
-    // Thread globals
-    const unsigned wkx = nkx / 2;
-    const unsigned wky = nky / 2;
 
 #ifdef _OPENMP
     omp_set_num_threads(n_threads); // Set number of threads to use
 #pragma omp parallel
     { // Code within this block is threaded
 #endif
+
+    // Copy these to thread locals to allow compiler to optimize (hoist/loads licm)
+    // when threaded. Without these, compile time constant conditionals may
+    // not be optimized away.
+    const size_t nx = _nx, ny = _ny;
+    const size_t nkx = _nkx, nky = _nky;
+    const bool nan_interpolate = _nan_interpolate;
     
     // Thread locals
+    const unsigned wkx = nkx / 2;
+    const unsigned wky = nky / 2;
     const unsigned nkx_minus_1 = nkx-1, nky_minus_1 = nky-1;
     unsigned wkx_minus_i, wky_minus_j;
     unsigned ker_i, ker_j;
@@ -272,18 +282,13 @@ inline __attribute__((always_inline)) void convolve2d_boundary_none(double * con
 
 // 3D
 inline __attribute__((always_inline)) void convolve3d_boundary_none(double * const result,
-        const double * const f, const size_t nx, const size_t ny, const size_t nz,
-        const double * const g, const size_t nkx, const size_t nky, const size_t nkz,
-        const bool nan_interpolate,
+        const double * const f, const size_t _nx, const size_t _ny, const size_t _nz,
+        const double * const g, const size_t _nkx, const size_t _nky, const size_t _nkz,
+        const bool _nan_interpolate,
         const unsigned n_threads)
 {
     if (!result || !f || !g)
         return;
-
-    // Thread globals
-    const unsigned wkx = nkx / 2;
-    const unsigned wky = nky / 2;
-    const unsigned wkz = nkz / 2;
 
 #ifdef _OPENMP
     omp_set_num_threads(n_threads); // Set number of threads to use
@@ -291,7 +296,17 @@ inline __attribute__((always_inline)) void convolve3d_boundary_none(double * con
     { // Code within this block is threaded
 #endif
 
+    // Copy these to thread locals to allow compiler to optimize (hoist/loads licm)
+    // when threaded. Without these, compile time constant conditionals may
+    // not be optimized away.
+    const size_t nx = _nx, ny = _ny, nz = _nz;
+    const size_t nkx = _nkx, nky = _nky, nkz = _nkz;
+    const bool nan_interpolate = _nan_interpolate;
+
     // Thread locals
+    const unsigned wkx = nkx / 2;
+    const unsigned wky = nky / 2;
+    const unsigned wkz = nkz / 2;
     const unsigned nkx_minus_1 = nkx-1, nky_minus_1 = nky-1, nkz_minus_1 = nkz-1;
     unsigned wkx_minus_i, wky_minus_j, wkz_minus_k;
     unsigned ker_i, ker_j, ker_k;
