@@ -18,6 +18,7 @@ from .. import units as u
 from ..nddata import support_nddata
 from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from ..modeling.core import _CompoundModelMeta
+from matplotlib.pyplot import fill_between
 
 faulthandler.enable()
 
@@ -26,7 +27,9 @@ lib_glob = 'c_convolve*.so'
 lib_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../../')
 lib_path = glob.glob(os.path.join(lib_path, lib_glob))[0]
 lib = ctypes.cdll.LoadLibrary(lib_path)
+
 # Declare prototypes
+# Boundary None
 convolve1d_boundary_none_c = lib.convolve1d_boundary_none_c
 convolve1d_boundary_none_c.restype = None
 convolve1d_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
@@ -48,13 +51,13 @@ convolve3d_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONT
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t, ctypes.c_size_t,
             ctypes.c_bool,
             ctypes.c_uint]
-
+# Boundary fill
 convolve1d_boundary_fill_c = lib.convolve1d_boundary_fill_c
 convolve1d_boundary_fill_c.restype = None
 convolve1d_boundary_fill_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t,
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t,
-            ctypes.c_double,
+            ctypes.c_double, ctypes.c_bool,
             ctypes.c_bool,
             ctypes.c_uint]
 convolve2d_boundary_fill_c = lib.convolve2d_boundary_fill_c
@@ -62,7 +65,7 @@ convolve2d_boundary_fill_c.restype = None
 convolve2d_boundary_fill_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t,
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t,
-            ctypes.c_double,
+            ctypes.c_double, ctypes.c_bool,
             ctypes.c_bool,
             ctypes.c_uint]
 convolve3d_boundary_fill_c = lib.convolve3d_boundary_fill_c
@@ -70,7 +73,7 @@ convolve3d_boundary_fill_c.restype = None
 convolve3d_boundary_fill_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t, ctypes.c_size_t,
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t, ctypes.c_size_t,
-            ctypes.c_double,
+            ctypes.c_double, ctypes.c_bool,
             ctypes.c_bool,
             ctypes.c_uint]
 
@@ -609,6 +612,12 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
 
     result = np.zeros(array.shape, dtype=float, order='C')
 
+    if boundary == 'fill' and fill_value == 0.:
+        skip_fill = True
+    else:
+        skip_value = False
+    skip_fill = True
+
     if array_internal.ndim == 1:
         if boundary == 'extend':
             result = convolve1d_boundary_extend(array_internal,
@@ -620,6 +629,7 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                       kernel_internal,
                       kernel_internal.shape[0],
                       fill_value,
+                      skip_fill,
                       nan_interpolate,
                       n_threads
                       )
@@ -649,6 +659,7 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                       kernel_internal.shape[0],
                       kernel_internal.shape[1],
                       fill_value,
+                      skip_fill,
                       nan_interpolate,
                       n_threads
                       )
@@ -682,6 +693,7 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                       kernel_internal.shape[1],
                       kernel_internal.shape[2],
                       fill_value,
+                      skip_fill,
                       nan_interpolate,
                       n_threads
                       )

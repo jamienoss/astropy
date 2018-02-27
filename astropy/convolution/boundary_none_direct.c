@@ -144,14 +144,14 @@ inline __attribute__((always_inline)) void convolve1d_boundary_none(double * con
         nkx_minus_1_minus_wkx_plus_i = nkx_minus_1 - wkx_minus_i; // nkx - 1 - (wkx - i)
 
         top = 0.;
-        if (nan_interpolate)
+        if (nan_interpolate) // compile time constant
             bot = 0.;
         for (unsigned ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
         {
             ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
             val = f[ii];
             ker = g[ker_i];
-            if (nan_interpolate)
+            if (nan_interpolate) // compile time constant
             {
                 if (!isnan(val))
                 {
@@ -163,7 +163,7 @@ inline __attribute__((always_inline)) void convolve1d_boundary_none(double * con
                 top += val * ker;
         }
 
-        if (nan_interpolate)
+        if (nan_interpolate) // compile time constant
         {
             if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
                 result[i]  = f[i] ;
@@ -230,7 +230,7 @@ inline __attribute__((always_inline)) void convolve2d_boundary_none(double * con
             nky_minus_1_minus_wky_plus_j = nky_minus_1 - wky_minus_j; // nky - 1 - (wky - i)
 
             top = 0.;
-            if (nan_interpolate)
+            if (nan_interpolate) // compile time constant
                 bot = 0.;
             for (unsigned ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
             {
@@ -240,7 +240,7 @@ inline __attribute__((always_inline)) void convolve2d_boundary_none(double * con
                     ker_j = nky_minus_1_minus_wky_plus_j - jj; // nky - 1 - (wky + jj - j)
                     val = f[ii*ny + jj]; //[ii, jj];
                     ker = g[ker_i*nky + ker_j]; // [ker_i, ker_j];
-                    if (nan_interpolate)
+                    if (nan_interpolate) // compile time constant
                     {
                         if (!isnan(val))
                         {
@@ -252,7 +252,7 @@ inline __attribute__((always_inline)) void convolve2d_boundary_none(double * con
                         top += val * ker;
                 }
             }
-            if (nan_interpolate)
+            if (nan_interpolate) // compile time constant
             {
                 if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
                     result[i*ny + j]  = f[i*ny + j] ;
@@ -330,7 +330,7 @@ inline __attribute__((always_inline)) void convolve3d_boundary_none(double * con
                 nkz_minus_1_minus_wkz_plus_k = nkz_minus_1 - wkz_minus_k; // nkz - 1 - (wkz - i)
 
                 top = 0.;
-                if (nan_interpolate)
+                if (nan_interpolate) // compile time constant
                     bot = 0.;
                 for (unsigned ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
                 {
@@ -344,7 +344,7 @@ inline __attribute__((always_inline)) void convolve3d_boundary_none(double * con
 
                             val = f[(ii*ny + jj)*nz + kk]; //[ii, jj, kk];
                             ker = g[(ker_i*nky + ker_j)*nkz + ker_k]; // [ker_i, ker_j, ker_k];
-                            if (nan_interpolate)
+                            if (nan_interpolate) // compile time constant
                             {
                                 if (!isnan(val))
                                 {
@@ -357,7 +357,7 @@ inline __attribute__((always_inline)) void convolve3d_boundary_none(double * con
                         }
                     }
                 }
-                if (nan_interpolate)
+                if (nan_interpolate) // compile time constant
                 {
                     if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
                         result[(i*ny + j)*nz + k]  = f[(i*ny + j)*nz + k] ;
