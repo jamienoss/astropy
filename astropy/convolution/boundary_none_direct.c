@@ -49,13 +49,15 @@ void convolve3d_boundary_none(double * const result,
         const bool nan_interpolate,
         const unsigned n_threads);
 
-// The function wrappers below are designed to take advantage of the following:
-// The preprocessor will inline compute_convolution(), effectively
-// expanding the two logical branches, replacing nan_interpolate
-// for their literal equivalents. The corresponding conditionals
-// within compute_convolution() will then be optimized away, this
-// being the goal - removing the unnecessary conditionals from
-// the loops without duplicating code.
+/*-------------------------PERFORMANCE NOTES--------------------------------
+ * The function wrappers below are designed to take advantage of the following:
+ * The preprocessor will inline compute_convolution(), effectively
+ * expanding the two logical branches, replacing nan_interpolate
+ * for their literal equivalents. The corresponding conditionals
+ * within compute_convolution() will then be optimized away, this
+ * being the goal - removing the unnecessary conditionals from
+ * the loops without duplicating code.
+ */
 
 void convolve1d_boundary_none_c(double * const result,
         const double * const f, const size_t nx,
@@ -117,7 +119,7 @@ inline __attribute__((always_inline)) void convolve1d_boundary_none(double * con
 
 #ifdef _OPENMP
     omp_set_num_threads(n_threads); // Set number of threads to use
-#pragma omp parallel shared(result, f, g) // All other consts are declared shared by default
+#pragma omp parallel
     { // Code within this block is threaded
 #endif
 
@@ -194,7 +196,7 @@ inline __attribute__((always_inline)) void convolve2d_boundary_none(double * con
 
 #ifdef _OPENMP
     omp_set_num_threads(n_threads); // Set number of threads to use
-#pragma omp parallel shared(result, f, g) // All other consts are declared shared by default
+#pragma omp parallel
     { // Code within this block is threaded
 #endif
     
@@ -285,7 +287,7 @@ inline __attribute__((always_inline)) void convolve3d_boundary_none(double * con
 
 #ifdef _OPENMP
     omp_set_num_threads(n_threads); // Set number of threads to use
-#pragma omp parallel shared(result, f, g) // All other consts are declared shared by default
+#pragma omp parallel
     { // Code within this block is threaded
 #endif
 

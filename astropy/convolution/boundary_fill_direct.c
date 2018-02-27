@@ -55,13 +55,15 @@ void convolve3d_boundary_fill(double * const result,
         const bool nan_interpolate,
         const unsigned n_threads);
 
-// The function wrappers below are designed to take advantage of the following:
-// The preprocessor will inline compute_convolution(), effectively
-// expanding the two logical branches, replacing nan_interpolate
-// for their literal equivalents. The corresponding conditionals
-// within compute_convolution() will then be optimized away, this
-// being the goal - removing the unnecessary conditionals from
-// the loops without duplicating code.
+/*-------------------------PERFORMANCE NOTES--------------------------------
+ * The function wrappers below are designed to take advantage of the following:
+ * The preprocessor will inline compute_convolution(), effectively
+ * expanding the two logical branches, replacing nan_interpolate
+ * for their literal equivalents. The corresponding conditionals
+ * within compute_convolution() will then be optimized away, this
+ * being the goal - removing the unnecessary conditionals from
+ * the loops without duplicating code.
+ */
 
 void convolve1d_boundary_fill_c(double * const result,
         const double * const f, const size_t nx,
@@ -95,13 +97,11 @@ void convolve2d_boundary_fill_c(double * const result,
         const double fill_value, const bool skip_fill,
         const bool nan_interpolate,
         const unsigned n_threads)
+
 {
     if (!result || !f || !g)
         return;
 
-    convolve2d_boundary_fill(result, f, nx, ny, g, nkx, nky, fill_value, true, false, n_threads);
-
-    /*
     if (nan_interpolate)
     {
         if (skip_fill)
@@ -116,7 +116,6 @@ void convolve2d_boundary_fill_c(double * const result,
         else
             convolve2d_boundary_fill(result, f, nx, ny, g, nkx, nky, fill_value, false, false, n_threads);
     }
-    */
 }
 
 void convolve3d_boundary_fill_c(double * const result,
@@ -161,7 +160,7 @@ inline __attribute__((always_inline)) void convolve1d_boundary_fill(double * con
 
 #ifdef _OPENMP
     omp_set_num_threads(n_threads); // Set number of threads to use
-#pragma omp parallel shared(result, f, g) // All other consts are declared shared by default
+#pragma omp parallel
     { // Code within this block is threaded
 #endif
 
@@ -248,7 +247,7 @@ inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * con
 
 #ifdef _OPENMP
     omp_set_num_threads(n_threads); // Set number of threads to use
-#pragma omp parallel shared(result, f, g) // All other consts are declared shared by default
+#pragma omp parallel
     { // Code within this block is threaded
 #endif
     
@@ -288,7 +287,7 @@ inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * con
                 bool fill_value_used = false;
                 if (ii < 0 || ii >= (int)nx)
                 {
-                    if (true) // compile time constant
+                    if (skip_fill) // compile time constant
                         continue;
                     else
                     {
@@ -303,7 +302,7 @@ inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * con
                     {
                         if (jj < 0 || jj >= (int)ny)
                         {
-                            if (true) // compile time constant
+                            if (skip_fill) // compile time constant
                                 continue;
                             else
                                 val = fill_value;
@@ -360,7 +359,7 @@ inline __attribute__((always_inline)) void convolve3d_boundary_fill(double * con
 
 #ifdef _OPENMP
     omp_set_num_threads(n_threads); // Set number of threads to use
-#pragma omp parallel shared(result, f, g) // All other consts are declared shared by default
+#pragma omp parallel
     { // Code within this block is threaded
 #endif
 
@@ -375,7 +374,8 @@ inline __attribute__((always_inline)) void convolve3d_boundary_fill(double * con
     unsigned i_plus_wkx_plus_1, j_plus_wky_plus_1, k_plus_wkz_plus_1;
     int nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j, nkz_minus_1_minus_wkz_plus_k;
 
-    double top, bot=0., ker, val;
+    double top, bot=0., ker;
+    double val = 0.; // Assign value to prevent gcc "-Wmaybe-uninitialized" false positive.
 
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
