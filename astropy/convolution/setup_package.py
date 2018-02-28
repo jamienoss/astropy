@@ -12,7 +12,7 @@ SRC_FILES = [os.path.join(C_CONVOLVE_PKGDIR, filename)
 
 def get_extensions():
     c_convolve_ext = Extension(name='c_convolve', sources=SRC_FILES,
-                 extra_compile_args=['-O3', '-fPIC'],
+                 extra_compile_args=['-O3', '-fPIC', '-Rpass-missed=.*'],
                  language='c')
 
     add_openmp_flags_if_available(c_convolve_ext)

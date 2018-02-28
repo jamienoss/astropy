@@ -212,7 +212,7 @@ inline __attribute__((always_inline)) void convolve1d_boundary_fill(double * con
     // Copy these to thread locals to allow compiler to optimize (hoist/loads licm)
     // when threaded. Without these, compile time constant conditionals may
     // not be optimized away.
-    const size_t nx = nx;
+    const size_t nx = _nx;
     const size_t nkx = _nkx;
     const double fill_value = _fill_value;
     const bool skip_fill = _skip_fill;
