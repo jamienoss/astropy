@@ -22,7 +22,7 @@ void convolve1d_boundary_fill_c(double * const result,
         const double fill_value, const bool skip_fill,
         const bool nan_interpolate,
         const unsigned n_threads);
-void convolve1d_boundary_fill(double * const result,
+inline __attribute__((always_inline)) void convolve1d_boundary_fill(double * const result,
         const double * const f, const size_t nx,
         const double * const g, const size_t nkx,
         const double fill_value, const bool skip_fill,
@@ -35,7 +35,7 @@ void convolve2d_boundary_fill_c(double * const result,
         const double fill_value, const bool skip_fill,
         const bool nan_interpolate,
         const unsigned n_threads);
-void convolve2d_boundary_fill(double * const result,
+inline __attribute__((always_inline))  void convolve2d_boundary_fill(double * const result,
         const double * const f, const size_t nx, const size_t ny,
         const double * const g, const size_t nkx, const size_t nky,
         const double fill_value, const bool skip_fill,
@@ -48,7 +48,7 @@ void convolve3d_boundary_fill_c(double * const result,
         const double fill_value, const bool skip_fill,
         const bool nan_interpolate,
         const unsigned n_threads);
-void convolve3d_boundary_fill(double * const result,
+inline __attribute__((always_inline)) void convolve3d_boundary_fill(double * const result,
         const double * const f, const size_t nx, const size_t ny, const size_t nz,
         const double * const g, const size_t nkx, const size_t nky, const size_t nkz,
         const double fill_value, const bool skip_fill,
@@ -283,6 +283,7 @@ inline __attribute__((always_inline)) void convolve1d_boundary_fill(double * con
     }//end parallel scope
 #endif
 }
+
 
 // 2D
 inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * const result,
