@@ -229,6 +229,9 @@ inline __attribute__((always_inline)) void convolve1d_boundary_fill(double * con
     int nkx_minus_1_minus_wkx_plus_i;
     double top, bot=0., ker, val;
 
+    const unsigned half_all = wkx + nx/2;
+    const unsigned half_nx = nx/2;
+
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
@@ -245,7 +248,10 @@ inline __attribute__((always_inline)) void convolve1d_boundary_fill(double * con
 
         for (int ii = i_minus_wkx; ii < (int)i_plus_wkx_plus_1; ++ii)
         {
-            if (ii < 0 || ii >= (int)nx)
+            unsigned ui = abs(ii + wkx_minus_half);
+            unsigned sw = ui/half;
+
+            if (!sw)//ii < 0 || ii >= (int)nx)
             {
                 if (skip_fill) // compile time constant
                     continue;
