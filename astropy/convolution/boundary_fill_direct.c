@@ -368,7 +368,7 @@ inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * con
             for (int ii = i_minus_wkx; ii < (int)i_plus_wkx_plus_1; ++ii)
             {
                 unsigned iii = ii + wkx;
-                unsigned sw_i = !(abs( (int)(iii+!(iii/half_all)-half_all))/half_nx);
+                bool sw_i = !(abs( (int)(iii+!(iii/half_all)-half_all))/half_nx);
 
                 /*bool fill_value_used = false;
                 if (ii < 0 || ii >= (int)nx)
@@ -398,8 +398,8 @@ inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * con
                             val = f[(unsigned)ii*ny + jj];
                     }*/
                    unsigned jjj = jj + wky;
-                   unsigned sw_j = !(abs( (int)(jjj+!(jjj/half_all)-half_all))/half_nx);
-                   unsigned sw = sw_i||sw_j;
+                   bool sw_j = !(abs( (int)(jjj+!(jjj/half_all)-half_all))/half_nx);
+                   bool sw = sw_i||sw_j;
                    const double * array = lookup[sw];
                    val = array[((unsigned)ii*ny + jj)*sw];
 
