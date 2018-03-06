@@ -334,6 +334,7 @@ inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * con
 
     const double fill[1] = {fill_value};
     const double * lookup[2] = {fill, f};
+    bool sw,sw_i;
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
@@ -356,7 +357,7 @@ inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * con
                 bot = 0.;
             for (int ii = i_minus_wkx; ii < (int)i_plus_wkx_plus_1; ++ii)
             {
-                bool sw_i = (ii < 0 || ii >= (int)nx);
+                sw_i = (ii < 0 || ii >= (int)nx);
 
                 /*bool fill_value_used = false;
                 if (ii < 0 || ii >= (int)nx)
@@ -373,11 +374,9 @@ inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * con
                 ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
                 for (int jj = j_minus_wky; jj < (int)j_plus_wky_plus_1; ++jj)
                 {
-                    bool sw_j = (jj < 0 || jj >= (int)ny);
-                    bool sw = !(sw_i || sw_j);
+                    sw = !(sw_i || (jj < 0 || jj >= (int)ny));
 
-                    const double * ar = (lookup[(unsigned)sw]);
-                    val = (lookup[(unsigned)sw])[((unsigned)sw)*((unsigned)ii*ny + jj)];
+                    val = (lookup[sw])[sw*(ii*ny + jj)];
 
                     /*if (!fill_value_used)
                     {
