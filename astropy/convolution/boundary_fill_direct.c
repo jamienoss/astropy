@@ -229,6 +229,9 @@ inline __attribute__((always_inline)) void convolve1d_boundary_fill(double * con
     int nkx_minus_1_minus_wkx_plus_i;
     double top, bot=0., ker, val;
 
+    const double fill[1] = {fill_value};
+    const double * lookup[2] = {fill, f};
+
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
@@ -245,7 +248,11 @@ inline __attribute__((always_inline)) void convolve1d_boundary_fill(double * con
 
         for (int ii = i_minus_wkx; ii < (int)i_plus_wkx_plus_1; ++ii)
         {
-            if (ii < 0 || ii >= (int)nx)
+            bool sw = !(ii < 0 || ii >= (int)nx);
+
+            const double * ar = lookup[sw];
+            val = ar[(unsigned)(sw*((unsigned)ii))];
+            /*if (ii < 0 || ii >= (int)nx)
             {
                 if (skip_fill) // compile time constant
                     continue;
@@ -254,7 +261,7 @@ inline __attribute__((always_inline)) void convolve1d_boundary_fill(double * con
             }
             else
                 val = f[(unsigned)ii];
-
+*/
             ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
             ker = g[ker_i];
             if (nan_interpolate) // compile time constant
@@ -325,6 +332,8 @@ inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * con
 
     double top, bot=0., ker, val;
 
+    const double fill[1] = {fill_value};
+    const double * lookup[2] = {fill, f};
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
@@ -347,7 +356,9 @@ inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * con
                 bot = 0.;
             for (int ii = i_minus_wkx; ii < (int)i_plus_wkx_plus_1; ++ii)
             {
-                bool fill_value_used = false;
+                bool sw_i = (ii < 0 || ii >= (int)nx);
+
+                /*bool fill_value_used = false;
                 if (ii < 0 || ii >= (int)nx)
                 {
                     if (skip_fill) // compile time constant
@@ -358,10 +369,17 @@ inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * con
                         fill_value_used = true;
                     }
                 }
+                */
                 ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
                 for (int jj = j_minus_wky; jj < (int)j_plus_wky_plus_1; ++jj)
                 {
-                    if (!fill_value_used)
+                    bool sw_j = (jj < 0 || jj >= (int)ny);
+                    bool sw = !(sw_i || sw_j);
+
+                    const double * ar = (lookup[(unsigned)sw]);
+                    val = (lookup[(unsigned)sw])[((unsigned)sw)*((unsigned)ii*ny + jj)];
+
+                    /*if (!fill_value_used)
                     {
                         if (jj < 0 || jj >= (int)ny)
                         {
@@ -372,7 +390,7 @@ inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * con
                         }
                         else
                             val = f[(unsigned)ii*ny + jj];
-                    }
+                    }*/
 
                     ker_j = nky_minus_1_minus_wky_plus_j - jj; // nky - 1 - (wky + jj - j)
                     ker = g[ker_i*nky + ker_j]; // [ker_i, ker_j];
