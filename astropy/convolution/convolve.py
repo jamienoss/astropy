@@ -599,22 +599,35 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
 
     result = np.zeros(array.shape, dtype=float, order='C')
 
-    if boundary == 'fill':
+    if boundary in ['fill', 'extend', 'wrap']:
         pad_width = np.array(kernel_internal.shape)//2
         old_shape = array_internal.shape
         new_shape = np.array(array_internal.shape) + 2*pad_width
-        padded_array = np.full(list(new_shape),
-                                fill_value=fill_value,
-                                dtype=float, order='C')
+        if boundary == 'fill':
+            padded_array = np.full(list(new_shape),
+                                   fill_value=fill_value,
+                                   dtype=float, order='C')
+        else:
+            padded_array = np.empty(list(new_shape),
+                                  dtype=float, order='C')
 
     if array_internal.ndim == 1:
         if boundary == 'extend':
-            result = convolve1d_boundary_extend(array_internal,
-                                                kernel_internal,
-                                                renormalize_by_kernel)
-        elif boundary == 'fill':
+            # Populate padded boundaries
+            padded_array[:pad_width[0]] = array_internal[0]
+            padded_array[-pad_width[0]:] = array_internal[-1]
+            # Populate with image
             padded_array[pad_width[0]:pad_width[0]+old_shape[0]] = array_internal
-            convolve1d_boundary_fill_c(result, padded_array,
+            convolve1d_padded_boundary_c(result, padded_array,
+                      array_internal.shape[0],
+                      kernel_internal,
+                      kernel_internal.shape[0],
+                      nan_interpolate,
+                      n_threads
+                      )
+        elif boundary == 'fill':
+            padded_array[pad_width[0]:-pad_width[0]] = array_internal
+            convolve1d_padded_boundary_c(result, padded_array,
                       array_internal.shape[0],
                       kernel_internal,
                       kernel_internal.shape[0],
@@ -635,14 +648,33 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
                       )
     elif array_internal.ndim == 2:
         if boundary == 'extend':
-            result = convolve2d_boundary_extend(array_internal,
-                                                kernel_internal,
-                                                renormalize_by_kernel,
-                                               )
+            # Populate padded boundaries
+            # edges
+            padded_array[pad_width[0]:-pad_width[0],:pad_width[1]] = array_internal[:,0]
+            padded_array[pad_width[0]:-pad_width[0],-pad_width[1]:] = array_internal[:,-1]
+            padded_array[:pad_width[0],pad_width[1]:-pad_width[1]] = array_internal[0,:]
+            padded_array[-pad_width[0]:,pad_width[1]:-pad_width[1]] = array_internal[-1,:]
+            # corners
+            padded_array[:pad_width[0],:pad_width[1]] = array_internal[0,0]
+            padded_array[:pad_width[0],-pad_width[1]:] = array_internal[0,-1]
+            padded_array[-pad_width[0]:,:pad_width[1]] = array_internal[-1,0]
+            padded_array[-pad_width[0]:,-pad_width[1]:] = array_internal[-1,-1]
+            # Popolate with image
+            padded_array[pad_width[0]:-pad_width[0],
+                     pad_width[1]:-pad_width[1]] = array_internal
+            convolve2d_padded_boundary_c(result, padded_array,
+                      array_internal.shape[0],
+                      array_internal.shape[1],
+                      kernel_internal,
+                      kernel_internal.shape[0],
+                      kernel_internal.shape[1],
+                      nan_interpolate,
+                      n_threads
+                      )
         elif boundary == 'fill':
-            padded_array[pad_width[0]:pad_width[0]+old_shape[0],
-                     pad_width[1]:pad_width[1]+old_shape[1]] = array_internal
-            convolve2d_boundary_fill_c(result, padded_array,
+            padded_array[pad_width[0]:-pad_width[0],
+                     pad_width[1]:-pad_width[1]] = array_internal
+            convolve2d_padded_boundary_c(result, padded_array,
                       array_internal.shape[0],
                       array_internal.shape[1],
                       kernel_internal,
