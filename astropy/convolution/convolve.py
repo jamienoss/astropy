@@ -52,23 +52,23 @@ convolve3d_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONT
             ctypes.c_bool,
             ctypes.c_uint]
 # Boundary fill
-convolve1d_boundary_fill_c = lib.convolve1d_boundary_fill_c
-convolve1d_boundary_fill_c.restype = None
-convolve1d_boundary_fill_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
+convolve1d_padded_boundary_c = lib.convolve1d_padded_boundary_c
+convolve1d_padded_boundary_c.restype = None
+convolve1d_padded_boundary_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t,
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t,
             ctypes.c_bool,
             ctypes.c_uint]
-convolve2d_boundary_fill_c = lib.convolve2d_boundary_fill_c
-convolve2d_boundary_fill_c.restype = None
-convolve2d_boundary_fill_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
+convolve2d_padded_boundary_c = lib.convolve2d_padded_boundary_c
+convolve2d_padded_boundary_c.restype = None
+convolve2d_padded_boundary_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t,
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t,
             ctypes.c_bool,
             ctypes.c_uint]
-convolve3d_boundary_fill_c = lib.convolve3d_boundary_fill_c
-convolve3d_boundary_fill_c.restype = None
-convolve3d_boundary_fill_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
+convolve3d_padded_boundary_c = lib.convolve3d_padded_boundary_c
+convolve3d_padded_boundary_c.restype = None
+convolve3d_padded_boundary_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t, ctypes.c_size_t,
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t, ctypes.c_size_t,
             ctypes.c_bool,
@@ -79,7 +79,6 @@ convolve3d_boundary_fill_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONT
 __doctest_skip__ = ['*']
 
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
-
 
 def _has_odd_shape(array):
     for n in array.shape:
@@ -460,15 +459,6 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     For masked arrays, masked values are treated as NaNs.  The convolution
     is always done at ``numpy.float`` precision.
     '''
-
-    from .boundary_extend import (convolve1d_boundary_extend,
-                                  convolve2d_boundary_extend,
-                                  convolve3d_boundary_extend)
-
-    from .boundary_wrap import (convolve1d_boundary_wrap,
-                                convolve2d_boundary_wrap,
-                                convolve3d_boundary_wrap)
-
 
     if boundary not in BOUNDARY_OPTIONS:
         raise ValueError("Invalid boundary option: must be one of {0}"

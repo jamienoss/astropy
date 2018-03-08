@@ -16,34 +16,34 @@
 #endif
 
 // 1D
-void convolve1d_boundary_fill_c(double * const result,
+void convolve1d_padded_boundary_c(double * const result,
         const double * const f, const size_t nx,
         const double * const g, const size_t nkx,
         const bool nan_interpolate,
         const unsigned n_threads);
-inline __attribute__((always_inline)) void convolve1d_boundary_fill(double * const result,
+inline __attribute__((always_inline)) void convolve1d_padded_boundary(double * const result,
         const double * const f, const size_t nx,
         const double * const g, const size_t nkx,
         const bool nan_interpolate,
         const unsigned n_threads);
 // 2D
-void convolve2d_boundary_fill_c(double * const result,
+void convolve2d_padded_boundary_c(double * const result,
         const double * const f, const size_t nx, const size_t ny,
         const double * const g, const size_t nkx, const size_t nky,
         const bool nan_interpolate,
         const unsigned n_threads);
-inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * const result,
+inline __attribute__((always_inline)) void convolve2d_padded_boundary(double * const result,
         const double * const f, const size_t nx, const size_t ny,
         const double * const g, const size_t nkx, const size_t nky,
         const bool nan_interpolate,
         const unsigned n_threads);
 // 3D
-void convolve3d_boundary_fill_c(double * const result,
+void convolve3d_padded_boundary_c(double * const result,
         const double * const f, const size_t nx, const size_t ny, const size_t nz,
         const double * const g, const size_t nkx, const size_t nky, const size_t nkz,
         const bool nan_interpolate,
         const unsigned n_threads);
-inline __attribute__((always_inline)) void convolve3d_boundary_fill(double * const result,
+inline __attribute__((always_inline)) void convolve3d_padded_boundary(double * const result,
         const double * const f, const size_t nx, const size_t ny, const size_t nz,
         const double * const g, const size_t nkx, const size_t nky, const size_t nkz,
         const bool nan_interpolate,
@@ -59,7 +59,7 @@ inline __attribute__((always_inline)) void convolve3d_boundary_fill(double * con
  * the loops without duplicating code.
  */
 
-void convolve1d_boundary_fill_c(double * const result,
+void convolve1d_padded_boundary_c(double * const result,
         const double * const f, const size_t nx,
         const double * const g, const size_t nkx,
         const bool nan_interpolate,
@@ -69,12 +69,12 @@ void convolve1d_boundary_fill_c(double * const result,
         return;
 
     if (nan_interpolate)
-        convolve1d_boundary_fill(result, f, nx, g, nkx, true, n_threads);
+        convolve1d_padded_boundary(result, f, nx, g, nkx, true, n_threads);
     else
-        convolve1d_boundary_fill(result, f, nx, g, nkx, false, n_threads);
+        convolve1d_padded_boundary(result, f, nx, g, nkx, false, n_threads);
 }
 
-void convolve2d_boundary_fill_c(double * const result,
+void convolve2d_padded_boundary_c(double * const result,
         const double * const f, const size_t nx, const size_t ny,
         const double * const g, const size_t nkx, const size_t nky,
         const bool nan_interpolate,
@@ -85,12 +85,12 @@ void convolve2d_boundary_fill_c(double * const result,
         return;
 
     if (nan_interpolate)
-        convolve2d_boundary_fill(result, f, nx, ny, g, nkx, nky, true, n_threads);
+        convolve2d_padded_boundary(result, f, nx, ny, g, nkx, nky, true, n_threads);
     else
-        convolve2d_boundary_fill(result, f, nx, ny, g, nkx, nky, false, n_threads);
+        convolve2d_padded_boundary(result, f, nx, ny, g, nkx, nky, false, n_threads);
 }
 
-void convolve3d_boundary_fill_c(double * const result,
+void convolve3d_padded_boundary_c(double * const result,
         const double * const f, const size_t nx, const size_t ny, const size_t nz,
         const double * const g, const size_t nkx, const size_t nky, const size_t nkz,
         const bool nan_interpolate,
@@ -100,9 +100,9 @@ void convolve3d_boundary_fill_c(double * const result,
         return;
 
     if (nan_interpolate)
-        convolve3d_boundary_fill(result, f, nx, ny, nz, g, nkx, nky, nkz, true, n_threads);
+        convolve3d_padded_boundary(result, f, nx, ny, nz, g, nkx, nky, nkz, true, n_threads);
     else
-        convolve3d_boundary_fill(result, f, nx, ny, nz, g, nkx, nky, nkz, false, n_threads);
+        convolve3d_padded_boundary(result, f, nx, ny, nz, g, nkx, nky, nkz, false, n_threads);
 }
 
 /*-------------------------PERFORMANCE NOTES--------------------------------
@@ -169,7 +169,7 @@ void convolve3d_boundary_fill_c(double * const result,
  */
 
 // 1D
-inline __attribute__((always_inline)) void convolve1d_boundary_fill(double * const result,
+inline __attribute__((always_inline)) void convolve1d_padded_boundary(double * const result,
         const double * const f, const size_t _nx,
         const double * const g, const size_t _nkx,
         const bool _nan_interpolate,
@@ -252,7 +252,7 @@ inline __attribute__((always_inline)) void convolve1d_boundary_fill(double * con
 }
 
 //2D
-inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * const result,
+inline __attribute__((always_inline)) void convolve2d_padded_boundary(double * const result,
         const double * const f, const size_t _nx, const size_t _ny,
         const double * const g, const size_t _nkx, const size_t _nky,
         const bool _nan_interpolate,
@@ -350,7 +350,7 @@ inline __attribute__((always_inline)) void convolve2d_boundary_fill(double * con
 }
 
 // 3D
-inline __attribute__((always_inline)) void convolve3d_boundary_fill(double * const result,
+inline __attribute__((always_inline)) void convolve3d_padded_boundary(double * const result,
         const double * const f, const size_t _nx, const size_t _ny, const size_t _nz,
         const double * const g, const size_t _nkx, const size_t _nky, const size_t _nkz,
         const bool _nan_interpolate,
