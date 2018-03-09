@@ -15,6 +15,15 @@
 #include <omp.h>
 #endif
 
+void convolveNd_padded_boundary_c(double * const result,
+        const double * const f,
+        const unsigned n_dim,
+        const size_t * const image_shape,
+        const double * const g,
+        const size_t * const kernel_shape,
+        const bool nan_interpolate,
+        const unsigned n_threads);
+
 // 1D
 void convolve1d_padded_boundary_c(double * const result,
         const double * const f, const size_t nx,
@@ -48,6 +57,40 @@ inline __attribute__((always_inline)) void convolve3d_padded_boundary(double * c
         const double * const g, const size_t nkx, const size_t nky, const size_t nkz,
         const bool nan_interpolate,
         const unsigned n_threads);
+
+void convolveNd_padded_boundary_c(double * const result,
+        const double * const f,
+        const unsigned n_dim,
+        const size_t * const image_shape,
+        const double * const g,
+        const size_t * const kernel_shape,
+        const bool nan_interpolate,
+        const unsigned n_threads)
+{
+    if (!result || !f || !g || !image_shape || !kernel_shape)
+            return;
+
+    convolve1d_padded_boundary_c(result, f,
+                    10000,
+                    g, 11,
+                    nan_interpolate, n_threads);
+    return;
+    if (n_dim == 1)
+        convolve1d_padded_boundary_c(result, f,
+                image_shape[0],
+                g, kernel_shape[0],
+                nan_interpolate, n_threads);
+    else if (n_dim == 2)
+        convolve2d_padded_boundary_c(result, f,
+                image_shape[0], image_shape[1],
+                g, kernel_shape[0], kernel_shape[1],
+                nan_interpolate, n_threads);
+    else if (n_dim == 3)
+        convolve3d_padded_boundary_c(result, f,
+                        image_shape[0], image_shape[1], image_shape[2],
+                        g, kernel_shape[0], kernel_shape[1], kernel_shape[2],
+                        nan_interpolate, n_threads);
+}
 
 /*-------------------------PERFORMANCE NOTES--------------------------------
  * The function wrappers below are designed to take advantage of the following:

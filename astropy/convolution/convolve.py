@@ -30,47 +30,26 @@ lib = ctypes.cdll.LoadLibrary(lib_path)
 
 # Declare prototypes
 # Boundary None
-convolve1d_boundary_none_c = lib.convolve1d_boundary_none_c
-convolve1d_boundary_none_c.restype = None
-convolve1d_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t,
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t,
+convolveNd_boundary_none_c = lib.convolveNd_boundary_none_c
+convolveNd_boundary_none_c.restype = None
+convolveNd_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
+            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
+            ctypes.c_uint, # N dim
+            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for return & input
+            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # kernel array
+            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for kernel
             ctypes.c_bool,
             ctypes.c_uint]
-convolve2d_boundary_none_c = lib.convolve2d_boundary_none_c
-convolve2d_boundary_none_c.restype = None
-convolve2d_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t,
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t,
-            ctypes.c_bool,
-            ctypes.c_uint]
-convolve3d_boundary_none_c = lib.convolve3d_boundary_none_c
-convolve3d_boundary_none_c.restype = None
-convolve3d_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t, ctypes.c_size_t,
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t, ctypes.c_size_t,
-            ctypes.c_bool,
-            ctypes.c_uint]
-# Boundary fill
-convolve1d_padded_boundary_c = lib.convolve1d_padded_boundary_c
-convolve1d_padded_boundary_c.restype = None
-convolve1d_padded_boundary_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t,
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t,
-            ctypes.c_bool,
-            ctypes.c_uint]
-convolve2d_padded_boundary_c = lib.convolve2d_padded_boundary_c
-convolve2d_padded_boundary_c.restype = None
-convolve2d_padded_boundary_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t,
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t,
-            ctypes.c_bool,
-            ctypes.c_uint]
-convolve3d_padded_boundary_c = lib.convolve3d_padded_boundary_c
-convolve3d_padded_boundary_c.restype = None
-convolve3d_padded_boundary_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t, ctypes.c_size_t,
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), ctypes.c_size_t, ctypes.c_size_t, ctypes.c_size_t,
+
+# Padded boundary
+convolveNd_padded_boundary_c = lib.convolve1d_padded_boundary_c
+convolveNd_padded_boundary_c.restype = None
+convolveNd_padded_boundary_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
+            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
+            ctypes.c_uint, # N dim
+            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for return & input
+            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # kernel array
+            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for kernel
             ctypes.c_bool,
             ctypes.c_uint]
 
@@ -595,88 +574,43 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
         if nan_treatment:
             array_internal[initially_nan] = fill_value
 
-    renormalize_by_kernel = True#not kernel_sums_to_zero
-
     result = np.zeros(array.shape, dtype=float, order='C')
+    array_shape = np.array(array_internal.shape, dtype=ctypes.c_size_t, order='C')
+    kernel_shape = np.array(kernel_internal.shape, dtype=ctypes.c_size_t, order='C')
 
-    np_pad_mode_dict = {'fill':'constant', 'extend':'edge', 'wrap':'wrap'}
     if boundary in ['fill', 'extend', 'wrap']:
-        pad_width = np.array(kernel_internal.shape)//2
+        np_pad_mode_dict = {'fill':'constant', 'extend':'edge', 'wrap':'wrap'}
         np_pad_mode = np_pad_mode_dict[boundary]
+        pad_width = np.array((kernel_shape//2), dtype=int) # np.pad expects pad_width to by of type int
 
-    if array_internal.ndim == 1:
-        if boundary in ['fill', 'extend', 'wrap']:
+        if array_internal.ndim == 1:
             np_pad_width = (pad_width[0],)
-            padded_array = np.pad(array_internal, pad_width=np_pad_width,
-                                  mode=np_pad_mode)
-            convolve1d_padded_boundary_c(result, padded_array,
-                      array_internal.shape[0],
-                      kernel_internal,
-                      kernel_internal.shape[0],
-                      nan_interpolate,
-                      n_threads
-                      )
-        else:
-            convolve1d_boundary_none_c(result, array_internal,
-                      array_internal.shape[0],
-                      kernel_internal,
-                      kernel_internal.shape[0],
-                      nan_interpolate,
-                      n_threads
-                      )
-    elif array_internal.ndim == 2:
-        if boundary in ['fill', 'extend', 'wrap']:
-            np_pad_width = ( (pad_width[0],), (pad_width[1],))
-            padded_array = np.pad(array_internal, pad_width=np_pad_width,
-                                  mode=np_pad_mode)
-            convolve2d_padded_boundary_c(result, padded_array,
-                      array_internal.shape[0],
-                      array_internal.shape[1],
-                      kernel_internal,
-                      kernel_internal.shape[0],
-                      kernel_internal.shape[1],
-                      nan_interpolate,
-                      n_threads
-                      )
-        else:
-            convolve2d_boundary_none_c(result, array_internal,
-                      array_internal.shape[0],
-                      array_internal.shape[1],
-                      kernel_internal,
-                      kernel_internal.shape[0],
-                      kernel_internal.shape[1],
-                      nan_interpolate,
-                      n_threads
-                      )
-    elif array_internal.ndim == 3:
-        if boundary in ['fill', 'extend', 'wrap']:
-            np_pad_width = ( (pad_width[0],), (pad_width[1],), (pad_width[2],))
-            padded_array = np.pad(array_internal, pad_width=np_pad_width,
-                                  mode=np_pad_mode)
-            convolve3d_padded_boundary_c(result, padded_array,
-                      array_internal.shape[0],
-                      array_internal.shape[1],
-                      array_internal.shape[2],
-                      kernel_internal,
-                      kernel_internal.shape[0],
-                      kernel_internal.shape[1],
-                      kernel_internal.shape[2],
-                      nan_interpolate,
-                      n_threads
-                      )
-        else:
-            convolve3d_boundary_none_c(result, array_internal,
-                      array_internal.shape[0],
-                      array_internal.shape[1],
-                      array_internal.shape[2],
-                      kernel_internal,
-                      kernel_internal.shape[0],
-                      kernel_internal.shape[1],
-                      kernel_internal.shape[2],
-                      nan_interpolate,
-                      n_threads
-                      )
-    
+        elif array_internal.ndim == 2:
+            np_pad_width = ( (pad_width[0],), (pad_width[1],) )
+        elif array_internal.ndim == 3:
+            np_pad_width = ( (pad_width[0],), (pad_width[1],), (pad_width[2],) )
+
+        padded_array = np.pad(array_internal, pad_width=np_pad_width,
+                              mode=np_pad_mode)
+
+        convolveNd_padded_boundary_c(result, padded_array,
+                  array_internal.ndim,
+                  array_shape,
+                  kernel_internal,
+                  kernel_shape,
+                  nan_interpolate,
+                  n_threads
+                  )
+    else:
+        convolveNd_boundary_none_c(result, array_internal,
+                  array_internal.ndim,
+                  array_shape,
+                  kernel_internal,
+                  kernel_shape,
+                  nan_interpolate,
+                  n_threads
+                  )
+
     # So far, normalization has only occured for nan_treatment == 'interpolate'
     # beacuse this had to happen within the C extension so as to ignore
     # any NaNs
