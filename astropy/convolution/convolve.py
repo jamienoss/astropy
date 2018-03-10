@@ -42,7 +42,7 @@ convolveNd_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONT
             ctypes.c_uint]
 
 # Padded boundary
-convolveNd_padded_boundary_c = lib.convolve1d_padded_boundary_c
+convolveNd_padded_boundary_c = lib.convolveNd_padded_boundary_c
 convolveNd_padded_boundary_c.restype = None
 convolveNd_padded_boundary_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array

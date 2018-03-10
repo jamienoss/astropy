@@ -70,11 +70,6 @@ void convolveNd_padded_boundary_c(double * const result,
     if (!result || !f || !g || !image_shape || !kernel_shape)
             return;
 
-    convolve1d_padded_boundary_c(result, f,
-                    10000,
-                    g, 11,
-                    nan_interpolate, n_threads);
-    return;
     if (n_dim == 1)
         convolve1d_padded_boundary_c(result, f,
                 image_shape[0],
