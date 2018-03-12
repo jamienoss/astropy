@@ -8,7 +8,8 @@ C_CONVOLVE_PKGDIR = os.path.relpath(os.path.dirname(__file__))
 
 SRC_FILES = [os.path.join(C_CONVOLVE_PKGDIR, filename)
               for filename in ['boundary_none_direct.c',
-                               'boundary_padded_direct.c']]
+                               'boundary_padded_direct.c',
+                               'openmp_enabled.c']]
 
 def get_extensions():
     c_convolve_ext = Extension(name='c_convolve', sources=SRC_FILES,

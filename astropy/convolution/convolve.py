@@ -53,6 +53,11 @@ convolveNd_padded_boundary_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CO
             ctypes.c_bool,
             ctypes.c_uint]
 
+# Utilities
+_openmp_enabled = lib.openmp_enabled
+_openmp_enabled.restype = bool
+_openmp_enabled.argtypes = None
+
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
 __doctest_skip__ = ['*']
@@ -448,6 +453,11 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
 
     if not isinstance(n_threads, int) or n_threads < 0:
         raise ValueError("n_threads must be a positive integer")
+
+    if n_threads > 1 and not _openmp_enabled():
+        warnings.warn("n_threads={0} used yet OPENMP is disabled. "
+                      "Running single threaded only.".format(n_threads),
+                      AstropyUserWarning)
 
     total_cpus = cpu_count()
     if n_threads > total_cpus:
