@@ -15,54 +15,57 @@
 #include <omp.h>
 #endif
 
-void convolveNd_boundary_none_c(double * const result,
-        const double * const f,
+#include "numpy/ndarrayobject.h"
+#define DTYPE npy_float64
+
+void convolveNd_boundary_none_c(DTYPE * const result,
+        const DTYPE * const f,
         const unsigned n_dim,
         const size_t * const image_shape,
-        const double * const g,
+        const DTYPE * const g,
         const size_t * const kernel_shape,
         const bool nan_interpolate,
         const unsigned n_threads);
 
 // 1D
-void convolve1d_boundary_none_c(double * const result,
-        const double * const f, const size_t nx,
-        const double * const g, const size_t nkx,
+void convolve1d_boundary_none_c(DTYPE * const result,
+        const DTYPE * const f, const size_t nx,
+        const DTYPE * const g, const size_t nkx,
         const bool nan_interpolate,
         const unsigned n_threads);
-inline __attribute__((always_inline)) void convolve1d_boundary_none(double * const result,
-        const double * const f, const size_t nx,
-        const double * const g, const size_t nkx,
+inline __attribute__((always_inline)) void convolve1d_boundary_none(DTYPE * const result,
+        const DTYPE * const f, const size_t nx,
+        const DTYPE * const g, const size_t nkx,
         const bool nan_interpolate,
         const unsigned n_threads);
 // 2D
-void convolve2d_boundary_none_c(double * const result,
-        const double * const f, const size_t nx, const size_t ny,
-        const double * const g, const size_t nkx, const size_t nky,
+void convolve2d_boundary_none_c(DTYPE * const result,
+        const DTYPE * const f, const size_t nx, const size_t ny,
+        const DTYPE * const g, const size_t nkx, const size_t nky,
         const bool nan_interpolate,
         const unsigned n_threads);
-inline __attribute__((always_inline)) void convolve2d_boundary_none(double * const result,
-        const double * const f, const size_t nx, const size_t ny,
-        const double * const g, const size_t nkx, const size_t nky,
+inline __attribute__((always_inline)) void convolve2d_boundary_none(DTYPE * const result,
+        const DTYPE * const f, const size_t nx, const size_t ny,
+        const DTYPE * const g, const size_t nkx, const size_t nky,
         const bool nan_interpolate,
         const unsigned n_threads);
 // 3D
-void convolve3d_boundary_none_c(double * const result,
-        const double * const f, const size_t nx, const size_t ny, const size_t nz,
-        const double * const g, const size_t nkx, const size_t nky, const size_t nkz,
+void convolve3d_boundary_none_c(DTYPE * const result,
+        const DTYPE * const f, const size_t nx, const size_t ny, const size_t nz,
+        const DTYPE * const g, const size_t nkx, const size_t nky, const size_t nkz,
         const bool nan_interpolate,
         const unsigned n_threads);
-inline __attribute__((always_inline)) void convolve3d_boundary_none(double * const result,
-        const double * const f, const size_t nx, const size_t ny, const size_t nz,
-        const double * const g, const size_t nkx, const size_t nky, const size_t nkz,
+inline __attribute__((always_inline)) void convolve3d_boundary_none(DTYPE * const result,
+        const DTYPE * const f, const size_t nx, const size_t ny, const size_t nz,
+        const DTYPE * const g, const size_t nkx, const size_t nky, const size_t nkz,
         const bool nan_interpolate,
         const unsigned n_threads);
 
-void convolveNd_boundary_none_c(double * const result,
-        const double * const f,
+void convolveNd_boundary_none_c(DTYPE * const result,
+        const DTYPE * const f,
         const unsigned n_dim,
         const size_t * const image_shape,
-        const double * const g,
+        const DTYPE * const g,
         const size_t * const kernel_shape,
         const bool nan_interpolate,
         const unsigned n_threads)
@@ -97,9 +100,9 @@ void convolveNd_boundary_none_c(double * const result,
  * the loops without duplicating code.
  */
 
-void convolve1d_boundary_none_c(double * const result,
-        const double * const f, const size_t nx,
-        const double * const g, const size_t nkx,
+void convolve1d_boundary_none_c(DTYPE * const result,
+        const DTYPE * const f, const size_t nx,
+        const DTYPE * const g, const size_t nkx,
         const bool nan_interpolate,
         const unsigned n_threads)
 {
@@ -112,9 +115,9 @@ void convolve1d_boundary_none_c(double * const result,
         convolve1d_boundary_none(result, f, nx, g, nkx, false, n_threads);
 }
 
-void convolve2d_boundary_none_c(double * const result,
-        const double * const f, const size_t nx, const size_t ny,
-        const double * const g, const size_t nkx, const size_t nky,
+void convolve2d_boundary_none_c(DTYPE * const result,
+        const DTYPE * const f, const size_t nx, const size_t ny,
+        const DTYPE * const g, const size_t nkx, const size_t nky,
         const bool nan_interpolate,
         const unsigned n_threads)
 {
@@ -127,9 +130,9 @@ void convolve2d_boundary_none_c(double * const result,
         convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, false, n_threads);
 }
 
-void convolve3d_boundary_none_c(double * const result,
-        const double * const f, const size_t nx, const size_t ny, const size_t nz,
-        const double * const g, const size_t nkx, const size_t nky, const size_t nkz,
+void convolve3d_boundary_none_c(DTYPE * const result,
+        const DTYPE * const f, const size_t nx, const size_t ny, const size_t nz,
+        const DTYPE * const g, const size_t nkx, const size_t nky, const size_t nkz,
         const bool nan_interpolate,
         const unsigned n_threads)
 {
@@ -143,9 +146,9 @@ void convolve3d_boundary_none_c(double * const result,
 }
 
 // 1D
-inline __attribute__((always_inline)) void convolve1d_boundary_none(double * const result,
-        const double * const f, const size_t _nx,
-        const double * const g, const size_t _nkx,
+inline __attribute__((always_inline)) void convolve1d_boundary_none(DTYPE * const result,
+        const DTYPE * const f, const size_t _nx,
+        const DTYPE * const g, const size_t _nkx,
         const bool _nan_interpolate,
         const unsigned n_threads)
 {
@@ -176,7 +179,7 @@ inline __attribute__((always_inline)) void convolve1d_boundary_none(double * con
     unsigned i_plus_wkx_plus_1;
     unsigned nkx_minus_1_minus_wkx_plus_i;
 
-    double top, bot=0., ker, val;
+    DTYPE top, bot=0., ker, val;
 
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
@@ -224,9 +227,9 @@ inline __attribute__((always_inline)) void convolve1d_boundary_none(double * con
 }
 
 // 2D
-inline __attribute__((always_inline)) void convolve2d_boundary_none(double * const result,
-        const double * const f, const size_t _nx, const size_t _ny,
-        const double * const g, const size_t _nkx, const size_t _nky,
+inline __attribute__((always_inline)) void convolve2d_boundary_none(DTYPE * const result,
+        const DTYPE * const f, const size_t _nx, const size_t _ny,
+        const DTYPE * const g, const size_t _nkx, const size_t _nky,
         const bool _nan_interpolate,
         const unsigned n_threads)
 {
@@ -260,7 +263,7 @@ inline __attribute__((always_inline)) void convolve2d_boundary_none(double * con
     unsigned i_plus_wkx_plus_1, j_plus_wky_plus_1;
     unsigned nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j;
     
-    double top, bot=0., ker, val;
+    DTYPE top, bot=0., ker, val;
     
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
@@ -319,9 +322,9 @@ inline __attribute__((always_inline)) void convolve2d_boundary_none(double * con
 }
 
 // 3D
-inline __attribute__((always_inline)) void convolve3d_boundary_none(double * const result,
-        const double * const f, const size_t _nx, const size_t _ny, const size_t _nz,
-        const double * const g, const size_t _nkx, const size_t _nky, const size_t _nkz,
+inline __attribute__((always_inline)) void convolve3d_boundary_none(DTYPE * const result,
+        const DTYPE * const f, const size_t _nx, const size_t _ny, const size_t _nz,
+        const DTYPE * const g, const size_t _nkx, const size_t _nky, const size_t _nkz,
         const bool _nan_interpolate,
         const unsigned n_threads)
 {
@@ -358,7 +361,7 @@ inline __attribute__((always_inline)) void convolve3d_boundary_none(double * con
     unsigned i_plus_wkx_plus_1, j_plus_wky_plus_1, k_plus_wkz_plus_1;
     unsigned nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j, nkz_minus_1_minus_wkz_plus_k;
 
-    double top, bot=0., ker, val;
+    DTYPE top, bot=0., ker, val;
 
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
