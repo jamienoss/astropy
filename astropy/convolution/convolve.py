@@ -575,29 +575,40 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
             array_internal[initially_nan] = fill_value
 
     result = np.zeros(array.shape, dtype=float, order='C')
-    array_shape = np.array(array_internal.shape, dtype=ctypes.c_size_t, order='C')
-    kernel_shape = np.array(kernel_internal.shape, dtype=ctypes.c_size_t, order='C')
+    array_shape = np.array(array_internal.shape)#, dtype=ctypes.c_size_t, order='C')
+    kernel_shape = np.array(kernel_internal.shape)#, dtype=ctypes.c_size_t, order='C')
 
     if boundary in ['fill', 'extend', 'wrap']:
-        np_pad_mode_dict = {'fill':'constant', 'extend':'edge', 'wrap':'wrap'}
-        np_pad_mode = np_pad_mode_dict[boundary]
-        pad_width = np.array((kernel_shape//2), dtype=int) # np.pad expects pad_width to by of type int
+        pad_width = kernel_shape//2
+        if boundary == 'fill':
+            # This method is faster than using numpy.pad( ,mode='constant')
+            padded_array = np.full(array_shape + 2*pad_width, fill_value=fill_value, dtype=float, order='C')
+            if array_internal.ndim == 1:
+                padded_array[pad_width[0]:-pad_width[0]] = array_internal
+            elif array_internal.ndim == 2:
+                padded_array[pad_width[0]:-pad_width[0], pad_width[1]:-pad_width[1]] = array_internal
+            elif array_internal.ndim == 3:
+                padded_array[pad_width[0]:-pad_width[0], pad_width[1]:-pad_width[1], pad_width[2]:-pad_width[2]] = array_internal
+        else:
+            np_pad_mode_dict = {'fill':'constant', 'extend':'edge', 'wrap':'wrap'}
+            np_pad_mode = np_pad_mode_dict[boundary]
+            pad_width = kernel_shape//2
 
-        if array_internal.ndim == 1:
-            np_pad_width = (pad_width[0],)
-        elif array_internal.ndim == 2:
-            np_pad_width = ( (pad_width[0],), (pad_width[1],) )
-        elif array_internal.ndim == 3:
-            np_pad_width = ( (pad_width[0],), (pad_width[1],), (pad_width[2],) )
+            if array_internal.ndim == 1:
+                np_pad_width = (pad_width[0],)
+            elif array_internal.ndim == 2:
+                np_pad_width = ( (pad_width[0],), (pad_width[1],) )
+            elif array_internal.ndim == 3:
+                np_pad_width = ( (pad_width[0],), (pad_width[1],), (pad_width[2],) )
 
-        padded_array = np.pad(array_internal, pad_width=np_pad_width,
-                              mode=np_pad_mode)
+            padded_array = np.pad(array_internal, pad_width=np_pad_width,
+                                  mode=np_pad_mode)
 
         convolveNd_padded_boundary_c(result, padded_array,
                   array_internal.ndim,
-                  array_shape,
+                  np.array(array_shape, dtype=ctypes.c_size_t, order='C'),
                   kernel_internal,
-                  kernel_shape,
+                  np.array(kernel_shape, dtype=ctypes.c_size_t, order='C'),
                   nan_interpolate,
                   n_threads
                   )
