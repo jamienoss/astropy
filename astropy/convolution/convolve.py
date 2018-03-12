@@ -625,9 +625,9 @@ def convolve_dev(array, kernel, boundary='fill', fill_value=0.,
     else:
         convolveNd_boundary_none_c(result, array_internal,
                   array_internal.ndim,
-                  array_shape,
+                  np.array(array_shape, dtype=ctypes.c_size_t, order='C'),
                   kernel_internal,
-                  kernel_shape,
+                  np.array(kernel_shape, dtype=ctypes.c_size_t, order='C'),
                   nan_interpolate,
                   n_threads
                   )
