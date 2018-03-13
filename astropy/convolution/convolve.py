@@ -27,6 +27,8 @@ lib_glob = 'c_convolve*.so'
 lib_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../../')
 lib_path = glob.glob(os.path.join(lib_path, lib_glob))[0]
 lib = ctypes.cdll.LoadLibrary(lib_path)
+# The GIL is automatically released by default when calling functions imported
+# from libaries loadded by ctypes.cdll.LoadLibrary(<path>)
 
 # Declare prototypes
 # Boundary None
