@@ -225,15 +225,15 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         if isinstance(passed_kernel, Kernel):
             if (isinstance(passed_array, Kernel1D) and isinstance(passed_kernel, Kernel1D)) or (isinstance(passed_array, Kernel2D) and isinstance(passed_kernel, Kernel2D)):
                 warnings.warn("array is Kernel instance, hardwiring the following parameters: "
-                                      "boundary='fill', fill_value=0, normalize_Kernel=True, "
-                                      "nan_treatment='interpolate'",
-                                      AstropyUserWarning)
+                              "boundary='fill', fill_value=0, normalize_Kernel=True, "
+                              "nan_treatment='interpolate'",
+                              AstropyUserWarning)
                 boundary = 'fill'
                 fill_value = 0
                 normalize_kernel = True
                 nan_treatment='interpolate'
             else:
-                raise Exception("Can't convolve 1D and 2D kernel.")
+                raise ValueError("Can't convolve 1D and 2D kernel.")
     else:
         raise TypeError("array should be a list, a Numpy array, or a Kernel instance.")
 
@@ -293,7 +293,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         kernel_sums_to_zero = np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
 
         if kernel_sum < 1. / MAX_NORMALIZATION or kernel_sums_to_zero:
-            raise Exception("The kernel can't be normalized, because its sum is "
+            raise ValueError("The kernel can't be normalized, because its sum is "
                             "close to zero. The sum of the given kernel is < {0}"
                             .format(1. / MAX_NORMALIZATION))
 
@@ -308,7 +308,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # here and pass through instead.
     result = np.zeros(array_internal.shape, dtype=float, order='C')
 
-    if boundary in ['fill', 'extend', 'wrap']:
+    if boundary in ('fill', 'extend', 'wrap'):
         if boundary == 'fill':
             # This method is faster than using numpy.pad(..., mode='constant')
             padded_array = np.full(array_shape + 2*pad_width, fill_value=fill_value, dtype=float, order='C')
@@ -317,9 +317,12 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             if array_internal.ndim == 1:
                 padded_array[pad_width[0]:array_shape[0]+pad_width[0]] = array_internal
             elif array_internal.ndim == 2:
-                padded_array[pad_width[0]:array_shape[0]+pad_width[0], pad_width[1]:array_shape[1]+pad_width[1]] = array_internal
+                padded_array[pad_width[0]:array_shape[0]+pad_width[0],
+                             pad_width[1]:array_shape[1]+pad_width[1]] = array_internal
             elif array_internal.ndim == 3:
-                padded_array[pad_width[0]:array_shape[0]+pad_width[0], pad_width[1]:array_shape[1]+pad_width[1], pad_width[2]:array_shape[2]+pad_width[2]] = array_internal
+                padded_array[pad_width[0]:array_shape[0]+pad_width[0],
+                             pad_width[1]:array_shape[1]+pad_width[1],
+                             pad_width[2]:array_shape[2]+pad_width[2]] = array_internal
         else:
             np_pad_mode_dict = {'fill':'constant', 'extend':'edge', 'wrap':'wrap'}
             np_pad_mode = np_pad_mode_dict[boundary]
@@ -354,7 +357,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
                   )
 
     # So far, normalization has only occured for nan_treatment == 'interpolate'
-    # beacuse this had to happen within the C extension so as to ignore
+    # because this had to happen within the C extension so as to ignore
     # any NaNs
     if normalize_kernel:
         if not nan_interpolate:
