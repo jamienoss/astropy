@@ -18,7 +18,6 @@ from .. import units as u
 from ..nddata import support_nddata
 from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from ..modeling.core import _CompoundModelMeta
-from matplotlib.pyplot import fill_between
 from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
 from ..openmp_enabled import is_openmp_enabled
 
@@ -282,9 +281,9 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         kernel_internal = kernel.filled(fill_value)
 
     # NaN interpolation significantly slows down the C convolution
-    # compuatation. Since nan_treatment = 'interpolate', is the default
+    # computation. Since nan_treatment = 'interpolate', is the default
     # check whether it is even needed, if not, don't interpolate.
-    # NB: np.isnan(array_internal.sum()) is fatser than np.isnan(array_internal).any()
+    # NB: np.isnan(array_internal.sum()) is faster than np.isnan(array_internal).any()
     nan_interpolate = (nan_treatment == 'interpolate') and np.isnan(array_internal.sum())
 
     # Check if kernel is normalizable
