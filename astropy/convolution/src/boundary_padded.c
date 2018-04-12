@@ -38,6 +38,7 @@ inline __attribute__((always_inline)) void convolve1d_padded_boundary(DTYPE * co
         const DTYPE * const g, const size_t nkx,
         const bool nan_interpolate,
         const unsigned n_threads);
+
 // 2D
 void convolve2d_padded_boundary_c(DTYPE * const result,
         const DTYPE * const f, const size_t nx, const size_t ny,
@@ -49,6 +50,7 @@ inline __attribute__((always_inline)) void convolve2d_padded_boundary(DTYPE * co
         const DTYPE * const g, const size_t nkx, const size_t nky,
         const bool nan_interpolate,
         const unsigned n_threads);
+
 // 3D
 void convolve3d_padded_boundary_c(DTYPE * const result,
         const DTYPE * const f, const size_t nx, const size_t ny, const size_t nz,
@@ -160,7 +162,6 @@ void convolve3d_padded_boundary_c(DTYPE * const result,
  * For (2) the check is exhaustive (no short-circuit), all conditions MUST be checked.
  * It is not possible to completely optimize for both (1) & (2). Better to make
  * majority case more efficient.
- * Original Cython had the above conditional within the inner most loop.
  * For (2) that's, at most, 6*nkx*nky*nkz checks. 3*nkx*nky (2D case).
  * 1st tier optimization is to split these out, to un-nest them, i.e. hoist
  * ii condition to ii, kk to kk etc. Worse case -> c*(nkx + nky + nkz), c = 2.

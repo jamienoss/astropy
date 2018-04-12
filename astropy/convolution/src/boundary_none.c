@@ -38,6 +38,7 @@ inline __attribute__((always_inline)) void convolve1d_boundary_none(DTYPE * cons
         const DTYPE * const g, const size_t nkx,
         const bool nan_interpolate,
         const unsigned n_threads);
+
 // 2D
 void convolve2d_boundary_none_c(DTYPE * const result,
         const DTYPE * const f, const size_t nx, const size_t ny,
@@ -49,6 +50,7 @@ inline __attribute__((always_inline)) void convolve2d_boundary_none(DTYPE * cons
         const DTYPE * const g, const size_t nkx, const size_t nky,
         const bool nan_interpolate,
         const unsigned n_threads);
+
 // 3D
 void convolve3d_boundary_none_c(DTYPE * const result,
         const DTYPE * const f, const size_t nx, const size_t ny, const size_t nz,

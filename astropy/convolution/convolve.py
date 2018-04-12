@@ -9,7 +9,6 @@ import glob
 import numpy as np
 from numpy.ctypeslib import ndpointer
 from functools import partial
-from multiprocessing import cpu_count
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.console import human_file_size
@@ -19,17 +18,17 @@ from ..nddata import support_nddata
 from ..modeling.core import _make_arithmetic_operator, BINARY_OPERATORS
 from ..modeling.core import _CompoundModelMeta
 from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
-from ..openmp_enabled import is_openmp_enabled
+from ..utils.openmp import handle_n_threads_usage
 
+# Turn the faulthandler ON to help catch any signals, e.g. segfaults
+# or asserts. This doesn't, currently, work with Jupyter Notebook.
 faulthandler.enable()
 
 # Find and load C convolution library
-lib_glob = 'c_convolve*.so'
-lib_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../../')
-lib_path = glob.glob(os.path.join(lib_path, lib_glob))[0]
+lib_path = glob.glob(os.path.join(os.path.dirname(__file__), 'lib_convolve*'))[0]
 lib = ctypes.cdll.LoadLibrary(lib_path)
 # The GIL is automatically released by default when calling functions imported
-# from libaries loadded by ctypes.cdll.LoadLibrary(<path>)
+# from libaries loaded by ctypes.cdll.LoadLibrary(<path>)
 
 # Declare prototypes
 # Boundary None
@@ -61,7 +60,6 @@ _convolveNd_padded_boundary_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_C
 __doctest_skip__ = ['*']
 
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
-
 
 @support_nddata(data='array')
 def convolve(array, kernel, boundary='fill', fill_value=0.,
@@ -128,8 +126,8 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     n_threads : int
         The number of threads to use (default 0). `0` => use all. There is no
         limit, be cautious if over commmiting resources.
-        Note An exception is raised for negative values. A warning is issued
-        if n_thredas>1 and astropy was NOT built with OpenMP support.
+        Note that an exception is raised for negative values. A warning is issued
+        if n_threads>1 and astropy was NOT built with OpenMP support.
         With DASK, it is more performant to set ``n_threads=1``.
 
     Returns
@@ -154,24 +152,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     if nan_treatment not in ('interpolate', 'fill'):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
 
-    if not isinstance(n_threads, int) or n_threads < 0:
-        raise ValueError("n_threads must be a positive integer")
-
-    total_cpus = cpu_count()
-    if n_threads > 1 and not is_openmp_enabled():
-        warnings.warn("n_threads={0} used yet Astropy was NOT built "
-                      "with OpenMP support. "
-                      "Running single threaded only.".format(n_threads),
-                      AstropyUserWarning)
-    elif n_threads > total_cpus:
-        warnings.warn("n_threads is greater than the total number "
-                      "of CPUs: {0}. Over commiting threads is unlikely "
-                      "to boost convolution performance "
-                      "and may lock-up your machine.".format(total_cpus),
-                      AstropyUserWarning)
-
-    if n_threads == 0:
-        n_threads = total_cpus
+    n_threads = handle_n_threads_usage(n_threads)
 
     # Keep refs to originals
     passed_kernel = kernel
@@ -222,7 +203,8 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         # If both image array and kernel are Kernel instances
         # constrain convolution method
         if isinstance(passed_kernel, Kernel):
-            if (isinstance(passed_array, Kernel1D) and isinstance(passed_kernel, Kernel1D)) or (isinstance(passed_array, Kernel2D) and isinstance(passed_kernel, Kernel2D)):
+            if ((isinstance(passed_array, Kernel1D) and isinstance(passed_kernel, Kernel1D)) or
+                (isinstance(passed_array, Kernel2D) and isinstance(passed_kernel, Kernel2D))):
                 warnings.warn("array is Kernel instance, hardwiring the following parameters: "
                               "boundary='fill', fill_value=0, normalize_Kernel=True, "
                               "nan_treatment='interpolate'",
@@ -254,9 +236,9 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # distance kernel.shape//2 from the edge are completely ignored (zeroed).
     # E.g. (1D list) only the indices len(kernel)//2 : len(array)-len(kernel)//2
     # are convolved. It is therefore not possible to use this method to convolve an
-    # array by a kernel that is larger* than the array - as ALL pixels would be ignored
+    # array by a kernel that is larger (see note below) than the array - as ALL pixels would be ignored
     # leaving an array of only zeros.
-    # * For even kernels the correctness condition is array_shape > kernel_shape.
+    # Note: For even kernels the correctness condition is array_shape > kernel_shape.
     # For odd kernels it is:
     # array_shape >= kernel_shape OR array_shape > kernel_shape-1 OR array_shape > 2*(kernel_shape//2).
     # Since the latter is equal to the former two for even lengths, the latter condition is complete.
