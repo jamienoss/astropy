@@ -7,6 +7,7 @@
  *------------------------------WARNING!------------------------------
  */
 
+#include <assert.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -72,8 +73,16 @@ void convolveNd_padded_boundary_c(DTYPE * const result,
         const bool nan_interpolate,
         const unsigned n_threads)
 {
+#ifdef NDEBUG
     if (!result || !f || !g || !image_shape || !kernel_shape)
-            return;
+        return;
+#else
+    assert(result);
+    assert(f);
+    assert(g);
+    assert(image_shape);
+    assert(kernel_shape);
+#endif
 
     if (n_dim == 1)
         convolve1d_padded_boundary_c(result, f,
@@ -90,6 +99,8 @@ void convolveNd_padded_boundary_c(DTYPE * const result,
                         image_shape[0], image_shape[1], image_shape[2],
                         g, kernel_shape[0], kernel_shape[1], kernel_shape[2],
                         nan_interpolate, n_threads);
+    else
+        assert(0); // Unimplemented: n_dim > 3
 }
 
 /*-------------------------PERFORMANCE NOTES--------------------------------
@@ -109,8 +120,14 @@ void convolve1d_padded_boundary_c(DTYPE * const result,
         const bool nan_interpolate,
         const unsigned n_threads)
 {
+#ifdef NDEBUG
     if (!result || !f || !g)
         return;
+#else
+    assert(result);
+    assert(f);
+    assert(g);
+#endif
 
     if (nan_interpolate)
         convolve1d_padded_boundary(result, f, nx, g, nkx, true, n_threads);
@@ -125,8 +142,14 @@ void convolve2d_padded_boundary_c(DTYPE * const result,
         const unsigned n_threads)
 
 {
+#ifdef NDEBUG
     if (!result || !f || !g)
         return;
+#else
+    assert(result);
+    assert(f);
+    assert(g);
+#endif
 
     if (nan_interpolate)
         convolve2d_padded_boundary(result, f, nx, ny, g, nkx, nky, true, n_threads);
@@ -140,8 +163,14 @@ void convolve3d_padded_boundary_c(DTYPE * const result,
         const bool nan_interpolate,
         const unsigned n_threads)
 {
+#ifdef NDEBUG
     if (!result || !f || !g)
         return;
+#else
+    assert(result);
+    assert(f);
+    assert(g);
+#endif
 
     if (nan_interpolate)
         convolve3d_padded_boundary(result, f, nx, ny, nz, g, nkx, nky, nkz, true, n_threads);
@@ -226,8 +255,14 @@ inline __attribute__((always_inline)) void convolve1d_padded_boundary(DTYPE * co
      *------------------------------WARNING!--------------------------------
      */
 
+#ifdef NDEBUG
     if (!result || !f || !g)
         return;
+#else
+    assert(result);
+    assert(f);
+    assert(g);
+#endif
 
 #ifdef _OPENMP
     omp_set_num_threads(n_threads); // Set number of threads to use
@@ -315,8 +350,14 @@ inline __attribute__((always_inline)) void convolve2d_padded_boundary(DTYPE * co
      *------------------------------WARNING!--------------------------------
      */
 
+#ifdef NDEBUG
     if (!result || !f || !g)
         return;
+#else
+    assert(result);
+    assert(f);
+    assert(g);
+#endif
 
 #ifdef _OPENMP
     omp_set_num_threads(n_threads); // Set number of threads to use
@@ -417,9 +458,14 @@ inline __attribute__((always_inline)) void convolve3d_padded_boundary(DTYPE * co
      * image array and NOT the padded version that is actually passed in.
      *------------------------------WARNING!--------------------------------
      */
-
+#ifdef NDEBUG
     if (!result || !f || !g)
         return;
+#else
+    assert(result);
+    assert(f);
+    assert(g);
+#endif
 
 #ifdef _OPENMP
     omp_set_num_threads(n_threads); // Set number of threads to use

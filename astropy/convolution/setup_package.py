@@ -14,7 +14,7 @@ def get_extensions():
     # Add '-Rpass-missed=.*' to ``extra_compile_args`` when compiling with clang
     # to report missed optimizations
     lib_convolve_ext = Extension(name='astropy.convolution.lib_convolve', sources=SRC_FILES,
-                 extra_compile_args=['-fPIC'],
+                 extra_compile_args=['-UNDEBUG', '-fPIC'],
                  include_dirs=["numpy"],
                  language='c')
 

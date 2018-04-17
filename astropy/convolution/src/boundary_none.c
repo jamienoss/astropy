@@ -7,6 +7,7 @@
  *------------------------------WARNING!------------------------------
  */
 
+#include <assert.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -72,8 +73,16 @@ void convolveNd_boundary_none_c(DTYPE * const result,
         const bool nan_interpolate,
         const unsigned n_threads)
 {
+#ifdef NDEBUG
     if (!result || !f || !g || !image_shape || !kernel_shape)
-            return;
+        return;
+#else
+    assert(result);
+    assert(f);
+    assert(g);
+    assert(image_shape);
+    assert(kernel_shape);
+#endif
 
     if (n_dim == 1)
         convolve1d_boundary_none_c(result, f,
@@ -90,6 +99,8 @@ void convolveNd_boundary_none_c(DTYPE * const result,
                         image_shape[0], image_shape[1], image_shape[2],
                         g, kernel_shape[0], kernel_shape[1], kernel_shape[2],
                         nan_interpolate, n_threads);
+    else
+        assert(0); // Unimplemented: n_dim > 3
 }
 
 /*-------------------------PERFORMANCE NOTES--------------------------------
@@ -109,8 +120,14 @@ void convolve1d_boundary_none_c(DTYPE * const result,
         const bool nan_interpolate,
         const unsigned n_threads)
 {
+#ifdef NDEBUG
     if (!result || !f || !g)
         return;
+#else
+    assert(result);
+    assert(f);
+    assert(g);
+#endif
 
     if (nan_interpolate)
         convolve1d_boundary_none(result, f, nx, g, nkx, true, n_threads);
@@ -124,8 +141,14 @@ void convolve2d_boundary_none_c(DTYPE * const result,
         const bool nan_interpolate,
         const unsigned n_threads)
 {
+#ifdef NDEBUG
     if (!result || !f || !g)
         return;
+#else
+    assert(result);
+    assert(f);
+    assert(g);
+#endif
 
     if (nan_interpolate)
         convolve2d_boundary_none(result, f, nx, ny, g, nkx, nky, true, n_threads);
@@ -139,8 +162,14 @@ void convolve3d_boundary_none_c(DTYPE * const result,
         const bool nan_interpolate,
         const unsigned n_threads)
 {
+#ifdef NDEBUG
     if (!result || !f || !g)
         return;
+#else
+    assert(result);
+    assert(f);
+    assert(g);
+#endif
 
     if (nan_interpolate)
         convolve3d_boundary_none(result, f, nx, ny, nz, g, nkx, nky, nkz, true, n_threads);
@@ -155,12 +184,22 @@ inline __attribute__((always_inline)) void convolve1d_boundary_none(DTYPE * cons
         const bool _nan_interpolate,
         const unsigned n_threads)
 {
+#ifdef NDEBUG
     if (!result || !f || !g)
         return;
+#else
+    assert(result);
+    assert(f);
+    assert(g);
+#endif
 
     const unsigned _wkx = _nkx / 2;
+#ifdef NDEBUG
     if (!(_nx > 2*_wkx))
         return;
+#else
+    assert(_nx > 2*_wkx);
+#endif
 
 #ifdef _OPENMP
     omp_set_num_threads(n_threads); // Set number of threads to use
@@ -240,13 +279,24 @@ inline __attribute__((always_inline)) void convolve2d_boundary_none(DTYPE * cons
         const bool _nan_interpolate,
         const unsigned n_threads)
 {
+#ifdef NDEBUG
     if (!result || !f || !g)
         return;
+#else
+    assert(result);
+    assert(f);
+    assert(g);
+#endif
 
     const unsigned _wkx = _nkx / 2;
     const unsigned _wky = _nky / 2;
+#ifdef NDEBUG
     if (!(_nx > 2*_wkx) || !(_ny > 2*_wky))
         return;
+#else
+    assert(_nx > 2*_wkx);
+    assert(_ny > 2*_wky);
+#endif
 
 #ifdef _OPENMP
     omp_set_num_threads(n_threads); // Set number of threads to use
@@ -340,14 +390,26 @@ inline __attribute__((always_inline)) void convolve3d_boundary_none(DTYPE * cons
         const bool _nan_interpolate,
         const unsigned n_threads)
 {
+#ifdef NDEBUG
     if (!result || !f || !g)
         return;
+#else
+    assert(result);
+    assert(f);
+    assert(g);
+#endif
 
     const unsigned _wkx = _nkx / 2;
     const unsigned _wky = _nky / 2;
     const unsigned _wkz = _nkz / 2;
+#ifdef NDEBUG
     if (!(_nx > 2*_wkx) || !(_ny > 2*_wky) || !(_nz > 2*_wkz))
         return;
+#else
+    assert(_nx > 2*_wkx);
+    assert(_ny > 2*_wky);
+    assert(_nz > 2*_wkz);
+#endif
 
 #ifdef _OPENMP
     omp_set_num_threads(n_threads); // Set number of threads to use
