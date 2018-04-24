@@ -1,4 +1,9 @@
 // Licensed under a 3-clause BSD style license - see LICENSE.rst
+#ifndef BOUNDARY_PADDED_INCL
+#define BOUNDARY_PADDED_INCL
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 #include "numpy/ndarrayobject.h"
 #define DTYPE npy_float64
@@ -47,3 +52,5 @@ inline __attribute__((always_inline)) void convolve3d_padded_boundary(DTYPE * co
         const DTYPE * const g, const size_t nkx, const size_t nky, const size_t nkz,
         const bool nan_interpolate,
         const unsigned n_threads);
+
+#endif

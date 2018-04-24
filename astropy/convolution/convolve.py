@@ -24,36 +24,7 @@ from ..utils.openmp import handle_n_threads_usage
 # or asserts. This doesn't, currently, work with Jupyter Notebook.
 faulthandler.enable()
 
-# Find and load C convolution library
-lib_path = glob.glob(os.path.join(os.path.dirname(__file__), 'lib_convolve*'))[0]
-lib = ctypes.cdll.LoadLibrary(lib_path)
-# The GIL is automatically released by default when calling functions imported
-# from libaries loaded by ctypes.cdll.LoadLibrary(<path>)
-
-# Declare prototypes
-# Boundary None
-_convolveNd_boundary_none_c = lib.convolveNd_boundary_none_c
-_convolveNd_boundary_none_c.restype = None
-_convolveNd_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
-            ctypes.c_uint, # N dim
-            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for return & input
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # kernel array
-            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for kernel
-            ctypes.c_bool, # nan_interpolate
-            ctypes.c_uint] # n_threads
-
-# Padded boundaries ['fill', 'extend', 'wrap']
-_convolveNd_padded_boundary_c = lib.convolveNd_padded_boundary_c
-_convolveNd_padded_boundary_c.restype = None
-_convolveNd_padded_boundary_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
-            ctypes.c_uint, # N dim
-            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for return & input
-            ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # kernel array
-            ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"), # size array for kernel
-            ctypes.c_bool, # nan_interpolate
-            ctypes.c_uint] # n_threads
+from .convolve_wrappers import _convolveNd_boundary_none, _convolveNd_padded_boundary
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
@@ -319,7 +290,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
             padded_array = np.pad(array_internal, pad_width=np_pad_width,
                                   mode=np_pad_mode)
 
-        _convolveNd_padded_boundary_c(result, padded_array,
+        _convolveNd_padded_boundary(result, padded_array,
                   array_internal.ndim,
                   np.array(array_shape, dtype=ctypes.c_size_t, order='C'),
                   kernel_internal,
@@ -328,7 +299,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
                   n_threads
                   )
     else:
-        _convolveNd_boundary_none_c(result, array_internal,
+        _convolveNd_boundary_none(result, array_internal,
                   array_internal.ndim,
                   np.array(array_shape, dtype=ctypes.c_size_t, order='C'),
                   kernel_internal,
