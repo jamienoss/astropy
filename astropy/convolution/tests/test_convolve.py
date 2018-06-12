@@ -50,17 +50,49 @@ class TestConvolve1D:
         assert_array_almost_equal_nulp(z,
             np.array([0., 3.6, 5., 5.6, 5.6, 6.8, 0.]), 10)
 
-    def test_input_unmodified(self):
+    @pytest.mark.parametrize(('boundary', 'nan_treatment',
+                              'normalize_kernel', 'preserve_nan'),
+                             itertools.product(BOUNDARY_OPTIONS,
+                                               NANHANDLING_OPTIONS,
+                                               NORMALIZE_OPTIONS,
+                                               PRESERVE_NAN_OPTIONS))
+    def test_input_unmodified(self, boundary, nan_treatment,
+                             normalize_kernel, preserve_nan):
         """
-        Test that convolve works correctly when inputs are lists
+        Test that convolve doesn't modify the input data
         """
 
-        inlist = [1, 4, 5, 6, 5, 7, 8]
-        x = np.array(inlist)
-        y = [0.2, 0.6, 0.2]
-        z = convolve(x, y, boundary=None)
+        array = [1., 4., 5., 6., 5., 7., 8.]
+        kernel = [0.2, 0.6, 0.2]
+        x = np.array(array, dtype=float)
+        y = np.array(kernel, dtype=float)
+        z = convolve(x, y, boundary=boundary, nan_treatment=nan_treatment,
+                     normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
 
-        assert np.all(np.array(inlist) == x)
+        assert np.all(np.array(array) == x)
+        assert np.all(np.array(kernel) == y)
+
+    @pytest.mark.parametrize(('boundary', 'nan_treatment',
+                              'normalize_kernel', 'preserve_nan'),
+                             itertools.product(BOUNDARY_OPTIONS,
+                                               NANHANDLING_OPTIONS,
+                                               NORMALIZE_OPTIONS,
+                                               PRESERVE_NAN_OPTIONS))
+    def test_input_unmodified_with_nan(self, boundary, nan_treatment,
+                                       normalize_kernel, preserve_nan):
+        """
+        Test that convolve doesn't modify the input data
+        """
+
+        array = [1., 4., 5., np.nan, 5., 7., 8.]
+        kernel = [0.2, 0.6, 0.2]
+        x = np.array(array, dtype=float)
+        y = np.array(kernel, dtype=float)
+        z = convolve(x, y, boundary=boundary, nan_treatment=nan_treatment,
+                     normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
+
+        assert np.all(np.array(array) == x)
+        assert np.all(np.array(kernel) == y)
 
     @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
     def test_dtype(self, dtype_array, dtype_kernel):
