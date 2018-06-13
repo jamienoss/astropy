@@ -69,8 +69,8 @@ class TestConvolve1D:
         z = convolve(x, y, boundary=boundary, nan_treatment=nan_treatment,
                      normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
 
-        assert np.all(np.array(array) == x)
-        assert np.all(np.array(kernel) == y)
+        assert np.all(np.array(array, dtype=float) == x)
+        assert np.all(np.array(kernel, dtype=float) == y)
 
     @pytest.mark.parametrize(('boundary', 'nan_treatment',
                               'normalize_kernel', 'preserve_nan'),
@@ -88,11 +88,25 @@ class TestConvolve1D:
         kernel = [0.2, 0.6, 0.2]
         x = np.array(array, dtype=float)
         y = np.array(kernel, dtype=float)
+        
+        # make copies for post call comparison
+        x_copy = x.copy()
+        y_copy = y.copy()
+        
         z = convolve(x, y, boundary=boundary, nan_treatment=nan_treatment,
                      normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
 
-        assert np.all(np.array(array) == x)
-        assert np.all(np.array(kernel) == y)
+        # ( NaN == NaN ) = False
+        # Only compare non NaN values for canonical equivilance
+        # and then check NaN explicitly with np.isnan()
+        array_is_nan = np.isnan(array)
+        kernel_is_nan = np.isnan(kernel)
+        array_not_nan = ~array_is_nan
+        kernel_not_nan = ~kernel_is_nan
+        assert np.all(x_copy[array_not_nan] == x[array_not_nan])
+        assert np.all(y_copy[kernel_not_nan] == y[kernel_not_nan])
+        assert np.all(np.isnan(x[array_is_nan]))
+        assert np.all(np.isnan(y[kernel_is_nan]))
 
     @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
     def test_dtype(self, dtype_array, dtype_kernel):
