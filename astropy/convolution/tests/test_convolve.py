@@ -57,7 +57,7 @@ class TestConvolve1D:
                                                NORMALIZE_OPTIONS,
                                                PRESERVE_NAN_OPTIONS))
     def test_input_unmodified(self, boundary, nan_treatment,
-                             normalize_kernel, preserve_nan):
+                              normalize_kernel, preserve_nan):
         """
         Test that convolve doesn't modify the input data
         """
