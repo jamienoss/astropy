@@ -32,6 +32,19 @@ try:
 except ImportError:
     HAS_PANDAS = False
 
+class ConvolveFunc:
+    def convolve(self, *args, **kargs):
+        return convolve(*args, **kargs)
+
+    def convolve_fft(self, *args, **kargs):
+        return convolve_fft(*args, **kargs)
+
+    def convolveFunc(self, *args, **kargs):
+        pass
+
+class DirectConvolve(ConvolveFunc):
+    def convolveFunc(self, *args, **kargs):
+        return self.convolve(self, *args, **kargs)
 
 class TestConvolve1D:
     def test_list(self):
