@@ -20,11 +20,6 @@ NANHANDLING_OPTIONS = ['interpolate', 'fill']
 NORMALIZE_OPTIONS = [True, False]
 PRESERVE_NAN_OPTIONS = [True, False]
 
-BOUNDARIES_AND_CONVOLUTIONS = (list(zip(itertools.cycle((convolve,)),
-                                        BOUNDARY_OPTIONS)) + [(convolve_fft,
-                                                               'wrap'),
-                                                              (convolve_fft,
-                                                               'fill')])
 HAS_SCIPY = True
 try:
     import scipy
@@ -87,8 +82,8 @@ class TestConvolve1D:
 
         assert x.dtype == z.dtype
 
-    @pytest.mark.parametrize(('convfunc', 'boundary',), BOUNDARIES_AND_CONVOLUTIONS)
-    def test_unity_1_none(self, boundary, convfunc):
+    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    def test_unity_1_none(self, boundary):
         '''
         Test that a unit kernel with a single element returns the same array
         '''
@@ -97,7 +92,7 @@ class TestConvolve1D:
 
         y = np.array([1.], dtype='>f8')
 
-        z = convfunc(x, y, boundary=boundary)
+        z = convolve(x, y, boundary=boundary)
 
         np.testing.assert_allclose(z, x)
 
