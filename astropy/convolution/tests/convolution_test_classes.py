@@ -3,6 +3,7 @@
 import pytest
 import numpy as np
 import numpy.ma as ma
+from abc import ABC, abstractmethod
 
 from ..convolve import convolve, convolve_fft
 
@@ -33,13 +34,14 @@ except ImportError:
     HAS_PANDAS = False
 
 
-class ConvolveFunc:
+class ConvolveFunc(ABC):
     def convolve(self, *args, **kargs):
         return convolve(*args, **kargs)
 
     def convolve_fft(self, *args, **kargs):
         return convolve_fft(*args, **kargs)
 
+    @abstractmethod
     def convolveFunc(self, *args, **kargs):
         pass
 
