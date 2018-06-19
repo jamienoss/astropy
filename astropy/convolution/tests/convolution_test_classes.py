@@ -759,78 +759,78 @@ class TestConvolve3D:
         else:
             raise ValueError("Invalid Boundary Option")
 
-
-@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
-def test_asymmetric_kernel(boundary):
-    '''
-    Regression test for #6264: make sure that asymmetric convolution
-    functions go the right direction
-    '''
-
-    x = np.array([3., 0., 1.], dtype='>f8')
-
-    y = np.array([1, 2, 3], dtype='>f8')
-
-    z = convolve(x, y, boundary=boundary, normalize_kernel=False)
-
-    if boundary == 'fill':
-        assert_array_almost_equal_nulp(z, np.array([6., 10., 2.], dtype='float'), 10)
-    elif boundary is None:
-        assert_array_almost_equal_nulp(z, np.array([0., 10., 0.], dtype='float'), 10)
-    elif boundary == 'extend':
-        assert_array_almost_equal_nulp(z, np.array([15., 10., 3.], dtype='float'), 10)
-    elif boundary == 'wrap':
-        assert_array_almost_equal_nulp(z, np.array([9., 10., 5.], dtype='float'), 10)
-
-
-@pytest.mark.parametrize('ndims', (1, 2, 3))
-def test_convolution_consistency(ndims):
-
-    np.random.seed(0)
-    array = np.random.randn(*([3]*ndims))
-    np.random.seed(0)
-    kernel = np.random.rand(*([3]*ndims))
-
-    conv_f = convolve_fft(array, kernel, boundary='fill')
-    conv_d = convolve(array, kernel, boundary='fill')
-
-    assert_array_almost_equal_nulp(conv_f, conv_d, 30)
-
-
-def test_astropy_convolution_against_numpy():
-    x = np.array([1, 2, 3])
-    y = np.array([5, 4, 3, 2, 1])
-
-    assert_array_almost_equal(np.convolve(y, x, 'same'),
-                              convolve(y, x, normalize_kernel=False))
-    assert_array_almost_equal(np.convolve(y, x, 'same'),
-                              convolve_fft(y, x, normalize_kernel=False))
-
-
-@pytest.mark.skipif('not HAS_SCIPY')
-def test_astropy_convolution_against_scipy():
-    from scipy.signal import fftconvolve
-    x = np.array([1, 2, 3])
-    y = np.array([5, 4, 3, 2, 1])
-
-    assert_array_almost_equal(fftconvolve(y, x, 'same'),
-                              convolve(y, x, normalize_kernel=False))
-    assert_array_almost_equal(fftconvolve(y, x, 'same'),
-                              convolve_fft(y, x, normalize_kernel=False))
-
-@pytest.mark.skipif('not HAS_PANDAS')
-def test_regression_6099():
-    wave = np.array((np.linspace(5000, 5100, 10)))
-    boxcar = 3
-    nonseries_result = convolve(wave, np.ones((boxcar,))/boxcar)
-
-    wave_series = pandas.Series(wave)
-    series_result  = convolve(wave_series, np.ones((boxcar,))/boxcar)
-
-    assert_array_almost_equal(nonseries_result, series_result)
-
-def test_invalid_array_convolve():
-    kernel = np.ones(3)/3.
-
-    with pytest.raises(TypeError):
-        convolve('glork', kernel)
+class TestConvolveMiscellaneous:
+    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    def test_asymmetric_kernel(self, boundary):
+        '''
+        Regression test for #6264: make sure that asymmetric convolution
+        functions go the right direction
+        '''
+    
+        x = np.array([3., 0., 1.], dtype='>f8')
+    
+        y = np.array([1, 2, 3], dtype='>f8')
+    
+        z = convolve(x, y, boundary=boundary, normalize_kernel=False)
+    
+        if boundary == 'fill':
+            assert_array_almost_equal_nulp(z, np.array([6., 10., 2.], dtype='float'), 10)
+        elif boundary is None:
+            assert_array_almost_equal_nulp(z, np.array([0., 10., 0.], dtype='float'), 10)
+        elif boundary == 'extend':
+            assert_array_almost_equal_nulp(z, np.array([15., 10., 3.], dtype='float'), 10)
+        elif boundary == 'wrap':
+            assert_array_almost_equal_nulp(z, np.array([9., 10., 5.], dtype='float'), 10)
+    
+    
+    @pytest.mark.parametrize('ndims', (1, 2, 3))
+    def test_convolution_consistency(self, ndims):
+    
+        np.random.seed(0)
+        array = np.random.randn(*([3]*ndims))
+        np.random.seed(0)
+        kernel = np.random.rand(*([3]*ndims))
+    
+        conv_f = convolve_fft(array, kernel, boundary='fill')
+        conv_d = convolve(array, kernel, boundary='fill')
+    
+        assert_array_almost_equal_nulp(conv_f, conv_d, 30)
+    
+    
+    def test_astropy_convolution_against_numpy(self):
+        x = np.array([1, 2, 3])
+        y = np.array([5, 4, 3, 2, 1])
+    
+        assert_array_almost_equal(np.convolve(y, x, 'same'),
+                                  convolve(y, x, normalize_kernel=False))
+        assert_array_almost_equal(np.convolve(y, x, 'same'),
+                                  convolve_fft(y, x, normalize_kernel=False))
+    
+    
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_astropy_convolution_against_scipy(self):
+        from scipy.signal import fftconvolve
+        x = np.array([1, 2, 3])
+        y = np.array([5, 4, 3, 2, 1])
+    
+        assert_array_almost_equal(fftconvolve(y, x, 'same'),
+                                  convolve(y, x, normalize_kernel=False))
+        assert_array_almost_equal(fftconvolve(y, x, 'same'),
+                                  convolve_fft(y, x, normalize_kernel=False))
+    
+    @pytest.mark.skipif('not HAS_PANDAS')
+    def test_regression_6099(self):
+        wave = np.array((np.linspace(5000, 5100, 10)))
+        boxcar = 3
+        nonseries_result = convolve(wave, np.ones((boxcar,))/boxcar)
+    
+        wave_series = pandas.Series(wave)
+        series_result  = convolve(wave_series, np.ones((boxcar,))/boxcar)
+    
+        assert_array_almost_equal(nonseries_result, series_result)
+    
+    def test_invalid_array_convolve(self):
+        kernel = np.ones(3)/3.
+    
+        with pytest.raises(TypeError):
+            convolve('glork', kernel)
