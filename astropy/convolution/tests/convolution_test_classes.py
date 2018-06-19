@@ -32,6 +32,7 @@ try:
 except ImportError:
     HAS_PANDAS = False
 
+
 class ConvolveFunc:
     def convolve(self, *args, **kargs):
         return convolve(*args, **kargs)
@@ -42,11 +43,8 @@ class ConvolveFunc:
     def convolveFunc(self, *args, **kargs):
         pass
 
-class DirectConvolve(ConvolveFunc):
-    def convolveFunc(self, *args, **kargs):
-        return self.convolve(self, *args, **kargs)
 
-class TestConvolve1D:
+class TestConvolve1D(ConvolveFunc):
     def test_list(self):
         """
         Test that convolve works correctly when inputs are lists
@@ -287,7 +285,7 @@ class TestConvolve1D:
         assert_array_almost_equal_nulp(z, np.array(rslt, dtype='>f8'), 10)
 
 
-class TestConvolve2D:
+class TestConvolve2D(ConvolveFunc):
     def test_list(self):
         """
         Test that convolve works correctly when inputs are lists
@@ -533,7 +531,7 @@ class TestConvolve2D:
             raise ValueError("Invalid boundary specification")
 
 
-class TestConvolve3D:
+class TestConvolve3D(ConvolveFunc):
     def test_list(self):
         """
         Test that convolve works correctly when inputs are lists
@@ -772,7 +770,7 @@ class TestConvolve3D:
         else:
             raise ValueError("Invalid Boundary Option")
 
-class TestConvolveMiscellaneous:
+class TestConvolveMiscellaneous(ConvolveFunc):
     @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_asymmetric_kernel(self, boundary):
         '''
