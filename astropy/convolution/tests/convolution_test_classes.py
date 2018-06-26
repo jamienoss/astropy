@@ -5,7 +5,8 @@ import numpy as np
 import numpy.ma as ma
 from abc import ABC, abstractmethod
 
-from ..convolve import convolve, convolve_fft
+from ..convolve import convolve as convolve_actual
+from ..convolve import convolve_fft as convolve_fft_actual
 
 from numpy.testing import assert_array_almost_equal_nulp, assert_array_almost_equal
 
@@ -36,17 +37,17 @@ except ImportError:
 
 class ConvolveFunc(ABC):
     def convolve(self, *args, **kargs):
-        return convolve(*args, **kargs)
+        return convolve_actual(*args, **kargs)
 
     def convolve_fft(self, *args, **kargs):
-        return convolve_fft(*args, **kargs)
+        return convolve_fft_actual(*args, **kargs)
 
     @abstractmethod
     def convolveFunc(self, *args, **kargs):
         pass
 
 
-class TestConvolve1D(ConvolveFunc):
+class OneDTests(ConvolveFunc):
     def test_list(self):
         """
         Test that convolve works correctly when inputs are lists
@@ -54,7 +55,7 @@ class TestConvolve1D(ConvolveFunc):
 
         x = [1, 4, 5, 6, 5, 7, 8]
         y = [0.2, 0.6, 0.2]
-        z = convolve(x, y, boundary=None)
+        z = self.convolveFunc(x, y, boundary=None)
         assert_array_almost_equal_nulp(z,
             np.array([0., 3.6, 5., 5.6, 5.6, 6.8, 0.]), 10)
 
@@ -65,7 +66,7 @@ class TestConvolve1D(ConvolveFunc):
 
         x = (1, 4, 5, 6, 5, 7, 8)
         y = (0.2, 0.6, 0.2)
-        z = convolve(x, y, boundary=None)
+        z = self.convolveFunc(x, y, boundary=None)
         assert_array_almost_equal_nulp(z,
             np.array([0., 3.6, 5., 5.6, 5.6, 6.8, 0.]), 10)
 
@@ -77,7 +78,7 @@ class TestConvolve1D(ConvolveFunc):
         inlist = [1, 4, 5, 6, 5, 7, 8]
         x = np.array(inlist)
         y = [0.2, 0.6, 0.2]
-        z = convolve(x, y, boundary=None)
+        z = self.convolveFunc(x, y, boundary=None)
 
         assert np.all(np.array(inlist) == x)
 
@@ -91,7 +92,7 @@ class TestConvolve1D(ConvolveFunc):
 
         y = np.array([0., 1., 0.], dtype=dtype_kernel)
 
-        z = convolve(x, y)
+        z = self.convolveFunc(x, y)
 
         assert x.dtype == z.dtype
 
@@ -105,7 +106,7 @@ class TestConvolve1D(ConvolveFunc):
 
         y = np.array([1.], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary)
+        z = self.convolveFunc(x, y, boundary=boundary)
 
         np.testing.assert_allclose(z, x)
 
@@ -120,7 +121,7 @@ class TestConvolve1D(ConvolveFunc):
 
         y = np.array([0., 1., 0.], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary)
+        z = self.convolveFunc(x, y, boundary=boundary)
 
         if boundary is None:
             assert np.all(z == np.array([0., 2., 0.], dtype='>f8'))
@@ -138,7 +139,7 @@ class TestConvolve1D(ConvolveFunc):
 
         y = np.array([1., 1., 1.], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, normalize_kernel=False)
+        z = self.convolveFunc(x, y, boundary=boundary, normalize_kernel=False)
 
         if boundary is None:
             assert np.all(z == np.array([0., 4., 0.], dtype='>f8'))
@@ -167,7 +168,7 @@ class TestConvolve1D(ConvolveFunc):
 
         y = np.array([0., 1., 0.], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, nan_treatment=nan_treatment,
+        z = self.convolveFunc(x, y, boundary=boundary, nan_treatment=nan_treatment,
                      normalize_kernel=normalize_kernel,
                      preserve_nan=preserve_nan)
 
@@ -200,7 +201,7 @@ class TestConvolve1D(ConvolveFunc):
 
         y = np.array([1., 1., 1.], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, nan_treatment=nan_treatment,
+        z = self.convolveFunc(x, y, boundary=boundary, nan_treatment=nan_treatment,
                      normalize_kernel=normalize_kernel,
                      preserve_nan=preserve_nan)
 
@@ -248,7 +249,7 @@ class TestConvolve1D(ConvolveFunc):
         y = [-1, -1, -1, -1, 8, -1, -1, -1, -1]
         assert(np.isclose(sum(y), 0, atol=1e-8))
 
-        z = convolve(x, y, boundary=boundary, normalize_kernel=normalize_kernel)
+        z = self.convolveFunc(x, y, boundary=boundary, normalize_kernel=normalize_kernel)
 
         # boundary, normalize_kernel == False
         rslt = {
@@ -274,7 +275,7 @@ class TestConvolve1D(ConvolveFunc):
         x = [1, 2, 3, 4, 5, 6, 7, 8, 9]
         y = ma.array([-1, -1, -1, -1, 8, -1, -1, -1, -1], mask=[1, 0, 0, 0, 0, 0, 0, 0, 0], fill_value=0.)
 
-        z = convolve(x, y, boundary=boundary, normalize_kernel=normalize_kernel)
+        z = self.convolveFunc(x, y, boundary=boundary, normalize_kernel=normalize_kernel)
 
         # boundary, normalize_kernel == False
         rslt = {
@@ -287,7 +288,7 @@ class TestConvolve1D(ConvolveFunc):
         assert_array_almost_equal_nulp(z, np.array(rslt, dtype='>f8'), 10)
 
 
-class TestConvolve2D(ConvolveFunc):
+class TwoDTests(ConvolveFunc):
     def test_list(self):
         """
         Test that convolve works correctly when inputs are lists
@@ -296,9 +297,9 @@ class TestConvolve2D(ConvolveFunc):
              [1, 1, 1],
              [1, 1, 1]]
 
-        z = convolve(x, x, boundary='fill', fill_value=1, normalize_kernel=True)
+        z = self.convolveFunc(x, x, boundary='fill', fill_value=1, normalize_kernel=True)
         assert_array_almost_equal_nulp(z, x, 10)
-        z = convolve(x, x, boundary='fill', fill_value=1, normalize_kernel=False)
+        z = self.convolveFunc(x, x, boundary='fill', fill_value=1, normalize_kernel=False)
         assert_array_almost_equal_nulp(z, np.array(x, float)*9, 10)
 
     @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
@@ -315,7 +316,7 @@ class TestConvolve2D(ConvolveFunc):
                       [0., 1., 0.],
                       [0., 0., 0.]], dtype=dtype_kernel)
 
-        z = convolve(x, y)
+        z = self.convolveFunc(x, y)
 
         assert x.dtype == z.dtype
 
@@ -331,7 +332,7 @@ class TestConvolve2D(ConvolveFunc):
 
         y = np.array([[1.]], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary)
+        z = self.convolveFunc(x, y, boundary=boundary)
 
         assert np.all(z == x)
 
@@ -350,7 +351,7 @@ class TestConvolve2D(ConvolveFunc):
                       [0., 1., 0.],
                       [0., 0., 0.]], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary)
+        z = self.convolveFunc(x, y, boundary=boundary)
 
         if boundary is None:
             assert np.all(z == np.array([[0., 0., 0.],
@@ -374,7 +375,7 @@ class TestConvolve2D(ConvolveFunc):
                       [1., 1., 1.],
                       [1., 1., 1.]], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, normalize_kernel=False)
+        z = self.convolveFunc(x, y, boundary=boundary, normalize_kernel=False)
 
         if boundary is None:
             assert_array_almost_equal_nulp(z, np.array([[0., 0., 0.],
@@ -409,7 +410,7 @@ class TestConvolve2D(ConvolveFunc):
                       [0., 1., 0.],
                       [0., 0., 0.]], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, nan_treatment='fill',
+        z = self.convolveFunc(x, y, boundary=boundary, nan_treatment='fill',
                      preserve_nan=True)
 
         assert np.isnan(z[1, 1])
@@ -439,7 +440,7 @@ class TestConvolve2D(ConvolveFunc):
                       [1., 1., 1.],
                       [1., 1., 1.]], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, nan_treatment='fill',
+        z = self.convolveFunc(x, y, boundary=boundary, nan_treatment='fill',
                      normalize_kernel=False)
 
         if boundary is None:
@@ -477,7 +478,7 @@ class TestConvolve2D(ConvolveFunc):
                       [1., 1., 1.],
                       [1., 1., 1.]], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, nan_treatment='interpolate',
+        z = self.convolveFunc(x, y, boundary=boundary, nan_treatment='interpolate',
                      normalize_kernel=True)
 
         if boundary is None:
@@ -510,7 +511,7 @@ class TestConvolve2D(ConvolveFunc):
                       [-1., 0., -1.],
                       [1., -1., 1.]], dtype='float')
 
-        z = convolve(x, y, boundary=boundary, nan_treatment='fill',
+        z = self.convolveFunc(x, y, boundary=boundary, nan_treatment='fill',
                      normalize_kernel=False)
 
         if boundary is None:
@@ -533,7 +534,7 @@ class TestConvolve2D(ConvolveFunc):
             raise ValueError("Invalid boundary specification")
 
 
-class TestConvolve3D(ConvolveFunc):
+class ThreeDTests(ConvolveFunc):
     def test_list(self):
         """
         Test that convolve works correctly when inputs are lists
@@ -548,7 +549,7 @@ class TestConvolve3D(ConvolveFunc):
               [1, 1, 1],
               [1, 1, 1]]]
 
-        z = convolve(x, x, boundary='fill', fill_value=1, normalize_kernel=False)
+        z = self.convolveFunc(x, x, boundary='fill', fill_value=1, normalize_kernel=False)
         assert_array_almost_equal_nulp(z / 27, x, 10)
 
     @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
@@ -565,7 +566,7 @@ class TestConvolve3D(ConvolveFunc):
                       [0., 1., 0.],
                       [0., 0., 0.]], dtype=dtype_kernel)
 
-        z = convolve(x, y)
+        z = self.convolveFunc(x, y)
 
         assert x.dtype == z.dtype
 
@@ -581,7 +582,7 @@ class TestConvolve3D(ConvolveFunc):
 
         y = np.array([[[1.]]], dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary)
+        z = self.convolveFunc(x, y, boundary=boundary)
 
         assert np.all(z == x)
 
@@ -599,7 +600,7 @@ class TestConvolve3D(ConvolveFunc):
         y = np.zeros((3, 3, 3), dtype='>f8')
         y[1, 1, 1] = 1.
 
-        z = convolve(x, y, boundary=boundary)
+        z = self.convolveFunc(x, y, boundary=boundary)
 
         if boundary is None:
             assert np.all(z == np.array([[[0., 0., 0.], [0., 0., 0.], [0., 0., 0.]],
@@ -621,7 +622,7 @@ class TestConvolve3D(ConvolveFunc):
 
         y = np.ones((3, 3, 3), dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, normalize_kernel=False)
+        z = self.convolveFunc(x, y, boundary=boundary, normalize_kernel=False)
 
         if boundary is None:
             assert_array_almost_equal_nulp(z, np.array([[[0., 0., 0.], [0., 0., 0.], [0., 0., 0.]],
@@ -657,7 +658,7 @@ class TestConvolve3D(ConvolveFunc):
         y = np.zeros((3, 3, 3), dtype='>f8')
         y[1, 1, 1] = 1.
 
-        z = convolve(x, y, boundary=boundary, nan_treatment=nan_treatment,
+        z = self.convolveFunc(x, y, boundary=boundary, nan_treatment=nan_treatment,
                      preserve_nan=True)
 
         assert np.isnan(z[1, 1, 1])
@@ -685,7 +686,7 @@ class TestConvolve3D(ConvolveFunc):
 
         y = np.ones((3, 3, 3), dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, nan_treatment='fill',
+        z = self.convolveFunc(x, y, boundary=boundary, nan_treatment='fill',
                      normalize_kernel=False)
 
         if boundary is None:
@@ -734,7 +735,7 @@ class TestConvolve3D(ConvolveFunc):
 
         y = np.ones((3, 3, 3), dtype='>f8')
 
-        z = convolve(x, y, boundary=boundary, nan_treatment='interpolate',
+        z = self.convolveFunc(x, y, boundary=boundary, nan_treatment='interpolate',
                      normalize_kernel=True)
 
         kernsum = y.sum() - 1  # one nan is missing
@@ -772,7 +773,7 @@ class TestConvolve3D(ConvolveFunc):
         else:
             raise ValueError("Invalid Boundary Option")
 
-class TestConvolveMiscellaneous(ConvolveFunc):
+class MiscellaneousTests(ConvolveFunc):
     @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_asymmetric_kernel(self, boundary):
         '''
@@ -784,7 +785,7 @@ class TestConvolveMiscellaneous(ConvolveFunc):
     
         y = np.array([1, 2, 3], dtype='>f8')
     
-        z = convolve(x, y, boundary=boundary, normalize_kernel=False)
+        z = self.convolveFunc(x, y, boundary=boundary, normalize_kernel=False)
     
         if boundary == 'fill':
             assert_array_almost_equal_nulp(z, np.array([6., 10., 2.], dtype='float'), 10)
@@ -804,8 +805,8 @@ class TestConvolveMiscellaneous(ConvolveFunc):
         np.random.seed(0)
         kernel = np.random.rand(*([3]*ndims))
     
-        conv_f = convolve_fft(array, kernel, boundary='fill')
-        conv_d = convolve(array, kernel, boundary='fill')
+        conv_f = self.convolve_fft(array, kernel, boundary='fill')
+        conv_d = self.convolve(array, kernel, boundary='fill')
     
         assert_array_almost_equal_nulp(conv_f, conv_d, 30)
     
@@ -815,9 +816,9 @@ class TestConvolveMiscellaneous(ConvolveFunc):
         y = np.array([5, 4, 3, 2, 1])
     
         assert_array_almost_equal(np.convolve(y, x, 'same'),
-                                  convolve(y, x, normalize_kernel=False))
+                                  self.convolve(y, x, normalize_kernel=False))
         assert_array_almost_equal(np.convolve(y, x, 'same'),
-                                  convolve_fft(y, x, normalize_kernel=False))
+                                  self.convolve_fft(y, x, normalize_kernel=False))
     
     
     @pytest.mark.skipif('not HAS_SCIPY')
@@ -827,18 +828,18 @@ class TestConvolveMiscellaneous(ConvolveFunc):
         y = np.array([5, 4, 3, 2, 1])
     
         assert_array_almost_equal(fftconvolve(y, x, 'same'),
-                                  convolve(y, x, normalize_kernel=False))
+                                  self.convolve(y, x, normalize_kernel=False))
         assert_array_almost_equal(fftconvolve(y, x, 'same'),
-                                  convolve_fft(y, x, normalize_kernel=False))
+                                  self.convolve_fft(y, x, normalize_kernel=False))
     
     @pytest.mark.skipif('not HAS_PANDAS')
     def test_regression_6099(self):
         wave = np.array((np.linspace(5000, 5100, 10)))
         boxcar = 3
-        nonseries_result = convolve(wave, np.ones((boxcar,))/boxcar)
+        nonseries_result = self.convolveFunc(wave, np.ones((boxcar,))/boxcar)
     
         wave_series = pandas.Series(wave)
-        series_result  = convolve(wave_series, np.ones((boxcar,))/boxcar)
+        series_result  = self.convolveFunc(wave_series, np.ones((boxcar,))/boxcar)
     
         assert_array_almost_equal(nonseries_result, series_result)
     
@@ -846,4 +847,4 @@ class TestConvolveMiscellaneous(ConvolveFunc):
         kernel = np.ones(3)/3.
     
         with pytest.raises(TypeError):
-            convolve('glork', kernel)
+            self.convolveFunc('glork', kernel)
