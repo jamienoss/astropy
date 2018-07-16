@@ -2,13 +2,8 @@
 
 from .convolution_test_classes import ConvolveFunc, OneDTests, TwoDTests, ThreeDTests, MiscellaneousTests
 
-import itertools
-
 def pytest_generate_tests(metafunc): # This should go somewhere more generic
     argnames, argvalues = metafunc.cls.parameterize(metafunc)
-    #print(argnames)
-    #print(argvalues)
-    #print()
     metafunc.parametrize(argnames, argvalues)
 
 VALID_DTYPES = ['>f4', '<f4', '>f8', '<f8']

@@ -10,7 +10,6 @@ from ..convolve import convolve_fft as convolve_fft_actual
 
 from numpy.testing import assert_array_almost_equal_nulp, assert_array_almost_equal
 
-import itertools
 
 HAS_SCIPY = True
 try:
