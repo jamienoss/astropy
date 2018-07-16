@@ -25,7 +25,8 @@ class Convolve(ConvolveFunc):
         "boundary" : [None, 'fill', 'wrap', 'extend'],
         "nan_treatment" : ['interpolate', 'fill'],
         "normalize_kernel" : [True, False],
-        "preserve_nan" : [True, False]
+        "preserve_nan" : [True, False],
+        "ndims" : [1, 2, 3]
         }
     
     def convolveFunc(self, *args, **kargs):

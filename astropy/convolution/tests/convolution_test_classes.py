@@ -24,7 +24,7 @@ try:
 except ImportError:
     HAS_PANDAS = False
 
-class Parameterizer:
+class Parameterizer: # This should go somewhere more generic
     @staticmethod
     def parameterize(metafunc):
         parameter_space = metafunc.cls.parameter_space
