@@ -3,7 +3,7 @@
 import pytest
 import numpy as np
 import numpy.ma as ma
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractclassmethod
 
 from ..convolve import convolve as convolve_actual
 from ..convolve import convolve_fft as convolve_fft_actual
@@ -11,16 +11,6 @@ from ..convolve import convolve_fft as convolve_fft_actual
 from numpy.testing import assert_array_almost_equal_nulp, assert_array_almost_equal
 
 import itertools
-
-VALID_DTYPES = []
-for dtype_array in ['>f4', '<f4', '>f8', '<f8']:
-    for dtype_kernel in ['>f4', '<f4', '>f8', '<f8']:
-        VALID_DTYPES.append((dtype_array, dtype_kernel))
-
-BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
-NANHANDLING_OPTIONS = ['interpolate', 'fill']
-NORMALIZE_OPTIONS = [True, False]
-PRESERVE_NAN_OPTIONS = [True, False]
 
 HAS_SCIPY = True
 try:
@@ -34,8 +24,21 @@ try:
 except ImportError:
     HAS_PANDAS = False
 
+class Parameterizer:
+    @staticmethod
+    def parameterize(metafunc):
+        parameter_space = metafunc.cls.parameter_space
+        # parameterize by only those args for the given test
+        func_arg_names = metafunc.function.__code__.co_varnames
+        # ``func_arg_names`` will include unwanted args like ``self`` and
+        # those not in the param_space, e.g. ``x``. Only want intersection.
+        argnames = list(set(func_arg_names) & set(parameter_space.keys()))
+        # Now get list of values.
+        value_space = [parameter_space[arg] for arg in argnames]
+        argvalues = list(itertools.product(*value_space))
+        return argnames, argvalues
 
-class ConvolveFunc(ABC):
+class ConvolveFunc(ABC, Parameterizer):
     def convolve(self, *args, **kargs):
         return convolve_actual(*args, **kargs)
 
@@ -82,7 +85,7 @@ class OneDTests(ConvolveFunc):
 
         assert np.all(np.array(inlist) == x)
 
-    @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
+    #@pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), self.getOption("VALID_DTYPES"))
     def test_dtype(self, dtype_array, dtype_kernel):
         '''
         Test that 32- and 64-bit floats are correctly handled
@@ -96,7 +99,7 @@ class OneDTests(ConvolveFunc):
 
         assert x.dtype == z.dtype
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    #@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_unity_1_none(self, boundary):
         '''
         Test that a unit kernel with a single element returns the same array
@@ -110,7 +113,7 @@ class OneDTests(ConvolveFunc):
 
         np.testing.assert_allclose(z, x)
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    #@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_unity_3(self, boundary):
         '''
         Test that a unit kernel with three elements returns the same array
@@ -128,7 +131,7 @@ class OneDTests(ConvolveFunc):
         else:
             assert np.all(z == x)
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    #@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_uniform_3(self, boundary):
         '''
         Test that the different modes are producing the correct results using
@@ -150,12 +153,12 @@ class OneDTests(ConvolveFunc):
         else:
             assert np.all(z == np.array([2., 4., 6.], dtype='>f8'))
 
-    @pytest.mark.parametrize(('boundary', 'nan_treatment',
-                              'normalize_kernel', 'preserve_nan'),
-                             itertools.product(BOUNDARY_OPTIONS,
-                                               NANHANDLING_OPTIONS,
-                                               NORMALIZE_OPTIONS,
-                                               PRESERVE_NAN_OPTIONS))
+    #@pytest.mark.parametrize(('boundary', 'nan_treatment',
+    #                          'normalize_kernel', 'preserve_nan'),
+    #                         itertools.product(BOUNDARY_OPTIONS,
+    #                                           NANHANDLING_OPTIONS,
+    #                                           NORMALIZE_OPTIONS,
+    #                                           PRESERVE_NAN_OPTIONS))
     def test_unity_3_withnan(self, boundary, nan_treatment,
                              normalize_kernel, preserve_nan):
         '''
@@ -183,12 +186,12 @@ class OneDTests(ConvolveFunc):
         else:
             assert np.all(z == x)
 
-    @pytest.mark.parametrize(('boundary', 'nan_treatment',
-                              'normalize_kernel', 'preserve_nan'),
-                             itertools.product(BOUNDARY_OPTIONS,
-                                               NANHANDLING_OPTIONS,
-                                               NORMALIZE_OPTIONS,
-                                               PRESERVE_NAN_OPTIONS))
+    #@pytest.mark.parametrize(('boundary', 'nan_treatment',
+    #                          'normalize_kernel', 'preserve_nan'),
+    #                         itertools.product(BOUNDARY_OPTIONS,
+    #                                           NANHANDLING_OPTIONS,
+    #                                           NORMALIZE_OPTIONS,
+    #                                           PRESERVE_NAN_OPTIONS))
     def test_uniform_3_withnan(self, boundary, nan_treatment, normalize_kernel,
                                preserve_nan):
         '''
@@ -234,9 +237,9 @@ class OneDTests(ConvolveFunc):
 
         assert_array_almost_equal_nulp(z, np.array(rslt, dtype='>f8'), 10)
 
-    @pytest.mark.parametrize(('boundary', 'normalize_kernel'),
-                             itertools.product(BOUNDARY_OPTIONS,
-                                               NORMALIZE_OPTIONS))
+    #@pytest.mark.parametrize(('boundary', 'normalize_kernel'),
+    #                         itertools.product(BOUNDARY_OPTIONS,
+    #                                           NORMALIZE_OPTIONS))
     def test_zero_sum_kernel(self, boundary, normalize_kernel):
         """
         Test that convolve works correctly with zero sum kernels.
@@ -261,9 +264,9 @@ class OneDTests(ConvolveFunc):
 
         assert_array_almost_equal_nulp(z, np.array(rslt, dtype='>f8'), 10)
 
-    @pytest.mark.parametrize(('boundary', 'normalize_kernel'),
-                             itertools.product(BOUNDARY_OPTIONS,
-                                               NORMALIZE_OPTIONS))
+    #@pytest.mark.parametrize(('boundary', 'normalize_kernel'),
+    #                         itertools.product(BOUNDARY_OPTIONS,
+     #                                          NORMALIZE_OPTIONS))
     def test_int_masked_kernel(self, boundary, normalize_kernel):
         """
         Test that convolve works correctly with integer masked kernels.
@@ -302,7 +305,7 @@ class TwoDTests(ConvolveFunc):
         z = self.convolveFunc(x, x, boundary='fill', fill_value=1, normalize_kernel=False)
         assert_array_almost_equal_nulp(z, np.array(x, float)*9, 10)
 
-    @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
+    #@pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), ConvolveFunc.getOption("VALID_DTYPES"))
     def test_dtype(self, dtype_array, dtype_kernel):
         '''
         Test that 32- and 64-bit floats are correctly handled
@@ -320,7 +323,7 @@ class TwoDTests(ConvolveFunc):
 
         assert x.dtype == z.dtype
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    #@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_unity_1x1_none(self, boundary):
         '''
         Test that a 1x1 unit kernel returns the same array
@@ -336,7 +339,7 @@ class TwoDTests(ConvolveFunc):
 
         assert np.all(z == x)
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    #@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_unity_3x3(self, boundary):
         '''
         Test that a 3x3 unit kernel returns the same array (except when
@@ -360,7 +363,7 @@ class TwoDTests(ConvolveFunc):
         else:
             assert np.all(z == x)
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    #@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_uniform_3x3(self, boundary):
         '''
         Test that the different modes are producing the correct results using
@@ -394,7 +397,7 @@ class TwoDTests(ConvolveFunc):
                                                         [4., 6., 8.],
                                                         [6., 5., 4.]], dtype='>f8'), 10)
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    #@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_unity_3x3_withnan(self, boundary):
         '''
         Test that a 3x3 unit kernel returns the same array (except when
@@ -424,7 +427,7 @@ class TwoDTests(ConvolveFunc):
         else:
             assert np.all(z == x)
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    #@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_uniform_3x3_withnanfilled(self, boundary):
         '''
         Test that the different modes are producing the correct results using
@@ -462,7 +465,7 @@ class TwoDTests(ConvolveFunc):
         else:
             raise ValueError("Invalid boundary specification")
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    #@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_uniform_3x3_withnaninterped(self, boundary):
         '''
         Test that the different modes are producing the correct results using
@@ -500,7 +503,7 @@ class TwoDTests(ConvolveFunc):
         else:
             raise ValueError("Invalid boundary specification")
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    #@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_non_normalized_kernel_2D(self, boundary):
 
         x = np.array([[0., 0., 4.],
@@ -552,7 +555,7 @@ class ThreeDTests(ConvolveFunc):
         z = self.convolveFunc(x, x, boundary='fill', fill_value=1, normalize_kernel=False)
         assert_array_almost_equal_nulp(z / 27, x, 10)
 
-    @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
+    #@pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), ConvolveFunc.getOption("VALID_DTYPES"))
     def test_dtype(self, dtype_array, dtype_kernel):
         '''
         Test that 32- and 64-bit floats are correctly handled
@@ -570,7 +573,7 @@ class ThreeDTests(ConvolveFunc):
 
         assert x.dtype == z.dtype
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    #@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_unity_1x1x1_none(self, boundary):
         '''
         Test that a 1x1x1 unit kernel returns the same array
@@ -586,7 +589,7 @@ class ThreeDTests(ConvolveFunc):
 
         assert np.all(z == x)
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    #@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_unity_3x3x3(self, boundary):
         '''
         Test that a 3x3x3 unit kernel returns the same array (except when
@@ -609,7 +612,7 @@ class ThreeDTests(ConvolveFunc):
         else:
             assert np.all(z == x)
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    #@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_uniform_3x3x3(self, boundary):
         '''
         Test that the different modes are producing the correct results using
@@ -641,9 +644,9 @@ class ThreeDTests(ConvolveFunc):
                                                        [[96., 71., 46.], [108., 81., 54.], [120., 91., 62.]],
                                                        [[127., 88., 49.], [141., 96., 51.], [155., 104., 53.]]], dtype='>f8'), 10)
 
-    @pytest.mark.parametrize(('boundary', 'nan_treatment'),
-                             itertools.product(BOUNDARY_OPTIONS,
-                                               NANHANDLING_OPTIONS))
+    #@pytest.mark.parametrize(('boundary', 'nan_treatment'),
+    #                         itertools.product(BOUNDARY_OPTIONS,
+    #                                           NANHANDLING_OPTIONS))
     def test_unity_3x3x3_withnan(self, boundary, nan_treatment):
         '''
         Test that a 3x3x3 unit kernel returns the same array (except when
@@ -672,7 +675,7 @@ class ThreeDTests(ConvolveFunc):
         else:
             assert np.all(z == x)
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    #@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_uniform_3x3x3_withnan_filled(self, boundary):
         '''
         Test that the different modes are producing the correct results using
@@ -721,7 +724,7 @@ class ThreeDTests(ConvolveFunc):
         else:
             raise ValueError("Invalid Boundary Option")
 
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+    #@pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_uniform_3x3x3_withnan_interped(self, boundary):
         '''
         Test that the different modes are producing the correct results using
@@ -774,7 +777,7 @@ class ThreeDTests(ConvolveFunc):
             raise ValueError("Invalid Boundary Option")
 
 class MiscellaneousTests(ConvolveFunc):
-    @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
+   # @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_asymmetric_kernel(self, boundary):
         '''
         Regression test for #6264: make sure that asymmetric convolution
@@ -797,7 +800,7 @@ class MiscellaneousTests(ConvolveFunc):
             assert_array_almost_equal_nulp(z, np.array([9., 10., 5.], dtype='float'), 10)
     
     
-    @pytest.mark.parametrize('ndims', (1, 2, 3))
+    #@pytest.mark.parametrize('ndims', (1, 2, 3))
     def test_convolution_consistency(self, ndims):
     
         np.random.seed(0)
@@ -821,7 +824,7 @@ class MiscellaneousTests(ConvolveFunc):
                                   self.convolve_fft(y, x, normalize_kernel=False))
     
     
-    @pytest.mark.skipif('not HAS_SCIPY')
+    #@pytest.mark.skipif('not HAS_SCIPY')
     def test_astropy_convolution_against_scipy(self):
         from scipy.signal import fftconvolve
         x = np.array([1, 2, 3])
@@ -832,7 +835,7 @@ class MiscellaneousTests(ConvolveFunc):
         assert_array_almost_equal(fftconvolve(y, x, 'same'),
                                   self.convolve_fft(y, x, normalize_kernel=False))
     
-    @pytest.mark.skipif('not HAS_PANDAS')
+    #@pytest.mark.skipif('not HAS_PANDAS')
     def test_regression_6099(self):
         wave = np.array((np.linspace(5000, 5100, 10)))
         boxcar = 3
