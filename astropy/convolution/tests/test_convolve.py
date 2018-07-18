@@ -6,18 +6,16 @@ def pytest_generate_tests(metafunc): # This should go somewhere more generic
     argnames, argvalues = metafunc.cls.parameterize(metafunc)
     metafunc.parametrize(argnames, argvalues)
 
-VALID_DTYPES = ['>f4', '<f4', '>f8', '<f8']
-
 
 class Convolve(ConvolveFunc):
     parameter_space = {
-        "dtype_array" : VALID_DTYPES,
-        "dtype_kernel" : VALID_DTYPES,
-        "boundary" : [None, 'fill', 'wrap', 'extend'],
-        "nan_treatment" : ['interpolate', 'fill'],
-        "normalize_kernel" : [True, False],
-        "preserve_nan" : [True, False],
-        "ndims" : [1, 2, 3]
+        "dtype_array" : ('>f4', '<f4', '>f8', '<f8'),
+        "dtype_kernel" : ('>f4', '<f4', '>f8', '<f8'),
+        "boundary" : (None, 'fill', 'wrap', 'extend'),
+        "nan_treatment" : ('interpolate', 'fill'),
+        "normalize_kernel" : (True, False),
+        "preserve_nan" : (True, False),
+        "ndims" : (1, 2, 3)
         }
 
     def convolveFunc(self, *args, **kargs):
