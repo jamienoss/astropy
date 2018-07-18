@@ -73,7 +73,8 @@ class OneDTests(ConvolveFunc):
         assert_array_almost_equal_nulp(z,
             np.array([1.4, 3.6, 5., 5.6, 5.6, 6.8, 6.2]), 10)
 
-    def test_input_unmodified(self):
+    def test_input_unmodified(self, boundary, nan_treatment,
+                             normalize_kernel, preserve_nan):
         """
         Test that convolve works correctly when inputs are lists
         """
@@ -81,7 +82,8 @@ class OneDTests(ConvolveFunc):
         inlist = [1, 4, 5, 6, 5, 7, 8]
         x = np.array(inlist)
         y = [0.2, 0.6, 0.2]
-        z = self.convolveFunc(x, y, boundary=None)
+        z = self.convolveFunc(x, y, boundary=boundary, nan_treatment=nan_treatment,
+                             normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
 
         assert np.all(np.array(inlist) == x)
 
