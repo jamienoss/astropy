@@ -19,7 +19,7 @@ class Convolve(ConvolveFunc):
         "preserve_nan" : [True, False],
         "ndims" : [1, 2, 3]
         }
-    
+
     def convolveFunc(self, *args, **kargs):
         return self.convolve(*args, **kargs)
 

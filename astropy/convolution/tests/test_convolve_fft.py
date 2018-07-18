@@ -1,32 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""
-
-"""
-
-
-from .convolution_test_classes import ConvolveFunc, OneDTests, TwoDTests, ThreeDTests, MiscellaneousTests
-
-
-
-
-#class ConvolveFFT(ConvolveFunc):
-#    def convolveFunc(self, *args, **kargs):
-#        return self.convolve_fft(*args, **kargs)
-
-#class TestConvolve1D(OneDTests, ConvolveFFT):
-#    pass
-
-#class TestConvolve2D(TwoDTests, ConvolveFFT):
-#    pass
-
-#class TestConvolve3D(ThreeDTests, ConvolveFFT):
-#    pass
-
-#class TestMiscellaneous(MiscellaneousTests, ConvolveFFT):
-#    pass
-
-
 import itertools
 
 import pytest
