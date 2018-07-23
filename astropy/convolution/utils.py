@@ -19,7 +19,7 @@ class KernelSizeError(Exception):
     """
 
 def has_even_axis(array):
-    if isinstance(array, list):
+    if isinstance(array, (list, tuple)):
         return not len(array) % 2
     else:
         return any(not axes_size % 2 for axes_size in array.shape)

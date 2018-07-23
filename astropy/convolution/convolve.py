@@ -61,6 +61,7 @@ __doctest_skip__ = ['*']
 
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 
+
 @support_nddata(data='array')
 def convolve(array, kernel, boundary='fill', fill_value=0.,
              nan_treatment='interpolate', normalize_kernel=True, mask=None,
@@ -158,10 +159,6 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     passed_kernel = kernel
     passed_array = array
 
-    # Make sure kernel has all odd axes 
-    if has_even_axis(passed_kernel):
-        raise_even_kernel_exception()
-
     # The C routines all need float type inputs (so, a particular
     # bit size, endianness, etc.).  So we have to convert, which also
     # has the effect of making copies so we don't modify the inputs.
@@ -179,22 +176,16 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     if isinstance(passed_array, Kernel):
         array_internal = passed_array.array
     else:
-        array_internal = passed_array.array
+        array_internal = passed_array
     # Alias kernel
     if isinstance(passed_kernel, Kernel):
         kernel_internal = passed_kernel.array
     else:
         kernel_internal = passed_kernel
 
-    # Check dimensionality
-    if array_internal.ndim == 0:
-        raise Exception("cannot convolve 0-dimensional arrays")
-    elif array_internal.ndim > 3:
-        raise NotImplementedError('convolve only supports 1, 2, and 3-dimensional '
-                                  'arrays at this time')
-    elif array_internal.ndim != kernel_internal.ndim:
-        raise Exception('array and kernel have differing number of '
-                        'dimensions.')
+    # Make sure kernel has all odd axes 
+    if has_even_axis(kernel_internal):
+        raise_even_kernel_exception()
 
     # Copy array to array_internal
     try:
@@ -228,7 +219,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     except (TypeError, ValueError) as e:
         raise TypeError('array should be a Numpy array or something '
                         'convertable into a float array', e)
-    array_dtype = getattr(array_internal, 'dtype', passed_array.dtype)
+    array_dtype = getattr(passed_array, 'dtype', array_internal.dtype)
 
     # If both image array and kernel are Kernel instances
     # constrain convolution method
@@ -271,9 +262,19 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     #-----------------------------------------------------------------------
     # From this point onwards refer only to ``array_internal`` and
     # ``kernel_internal``.
-    # Assume both are base np.ndarrays and NOT child classes e.g. NOT
+    # Assume both are base np.ndarrays and NOT subclasses e.g. NOT
     # ``Kernel`` nor ``np.ma.maskedarray`` classes.
     #-----------------------------------------------------------------------
+
+    # Check dimensionality
+    if array_internal.ndim == 0:
+        raise Exception("cannot convolve 0-dimensional arrays")
+    elif array_internal.ndim > 3:
+        raise NotImplementedError('convolve only supports 1, 2, and 3-dimensional '
+                                  'arrays at this time')
+    elif array_internal.ndim != kernel_internal.ndim:
+        raise Exception('array and kernel have differing number of '
+                        'dimensions.')
 
     array_shape = np.array(array_internal.shape)
     kernel_shape = np.array(kernel_internal.shape)
