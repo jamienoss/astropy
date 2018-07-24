@@ -12,6 +12,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include "convolve.h"
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -34,7 +36,7 @@ void convolve1d_padded_boundary_c(DTYPE * const result,
         const DTYPE * const g, const size_t nkx,
         const bool nan_interpolate,
         const unsigned n_threads);
-inline __attribute__((always_inline)) void convolve1d_padded_boundary(DTYPE * const result,
+FORCE_INLINE void convolve1d_padded_boundary(DTYPE * const result,
         const DTYPE * const f, const size_t nx,
         const DTYPE * const g, const size_t nkx,
         const bool nan_interpolate,
@@ -46,7 +48,7 @@ void convolve2d_padded_boundary_c(DTYPE * const result,
         const DTYPE * const g, const size_t nkx, const size_t nky,
         const bool nan_interpolate,
         const unsigned n_threads);
-inline __attribute__((always_inline)) void convolve2d_padded_boundary(DTYPE * const result,
+FORCE_INLINE void convolve2d_padded_boundary(DTYPE * const result,
         const DTYPE * const f, const size_t nx, const size_t ny,
         const DTYPE * const g, const size_t nkx, const size_t nky,
         const bool nan_interpolate,
@@ -58,7 +60,7 @@ void convolve3d_padded_boundary_c(DTYPE * const result,
         const DTYPE * const g, const size_t nkx, const size_t nky, const size_t nkz,
         const bool nan_interpolate,
         const unsigned n_threads);
-inline __attribute__((always_inline)) void convolve3d_padded_boundary(DTYPE * const result,
+FORCE_INLINE void convolve3d_padded_boundary(DTYPE * const result,
         const DTYPE * const f, const size_t nx, const size_t ny, const size_t nz,
         const DTYPE * const g, const size_t nkx, const size_t nky, const size_t nkz,
         const bool nan_interpolate,
@@ -243,7 +245,7 @@ void convolve3d_padded_boundary_c(DTYPE * const result,
 
 
 // 1D
-inline __attribute__((always_inline)) void convolve1d_padded_boundary(DTYPE * const result,
+FORCE_INLINE void convolve1d_padded_boundary(DTYPE * const result,
         const DTYPE * const f, const size_t _nx,
         const DTYPE * const g, const size_t _nkx,
         const bool _nan_interpolate,
@@ -338,7 +340,7 @@ inline __attribute__((always_inline)) void convolve1d_padded_boundary(DTYPE * co
 }
 
 //2D
-inline __attribute__((always_inline)) void convolve2d_padded_boundary(DTYPE * const result,
+FORCE_INLINE void convolve2d_padded_boundary(DTYPE * const result,
         const DTYPE * const f, const size_t _nx, const size_t _ny,
         const DTYPE * const g, const size_t _nkx, const size_t _nky,
         const bool _nan_interpolate,
@@ -447,7 +449,7 @@ inline __attribute__((always_inline)) void convolve2d_padded_boundary(DTYPE * co
 }
 
 // 3D
-inline __attribute__((always_inline)) void convolve3d_padded_boundary(DTYPE * const result,
+FORCE_INLINE void convolve3d_padded_boundary(DTYPE * const result,
         const DTYPE * const f, const size_t _nx, const size_t _ny, const size_t _nz,
         const DTYPE * const g, const size_t _nkx, const size_t _nky, const size_t _nkz,
         const bool _nan_interpolate,
