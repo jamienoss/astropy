@@ -105,7 +105,7 @@ matrix:
           stage: Initial tests
           env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES' clang llvm-openmp'
                SETUP_CMD='test -a "--durations=50"'
-          compiler: clang
+               CCOMPILER=clang
 
         # Full tests with coverage checks.
         - os: linux
