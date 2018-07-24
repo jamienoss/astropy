@@ -286,13 +286,13 @@ FORCE_INLINE void convolve1d_padded_boundary(DTYPE * const result,
     unsigned ker_i;
     unsigned i_minus_wkx;
     const unsigned wkx_plus_1 = wkx + 1;
-    unsigned i_plus_wkx_plus_1;
+    omp_iter_var i_plus_wkx_plus_1;
     int nkx_minus_1_minus_wkx_plus_i;
     unsigned i_unpadded;
 
     DTYPE top, bot=0., ker, val;
 
-    {unsigned i;
+    {omp_iter_var i;
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
@@ -308,7 +308,7 @@ FORCE_INLINE void convolve1d_padded_boundary(DTYPE * const result,
         if (nan_interpolate) // compile time constant
             bot = 0.;
 
-        {unsigned ii;
+        {omp_iter_var ii;
         for (ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
         {
             val = f[ii];
@@ -386,12 +386,12 @@ FORCE_INLINE void convolve2d_padded_boundary(DTYPE * const result,
     int i_minus_wkx, j_minus_wky;
     const unsigned wkx_plus_1 = wkx + 1;
     const unsigned wky_plus_1 = wky + 1;
-    unsigned i_plus_wkx_plus_1, j_plus_wky_plus_1;
+    omp_iter_var i_plus_wkx_plus_1, j_plus_wky_plus_1;
     int nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j;
     unsigned i_unpadded, j_unpadded;
     DTYPE top, bot=0., ker, val;
 
-    {unsigned i;
+    {omp_iter_var i;
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
@@ -403,7 +403,7 @@ FORCE_INLINE void convolve2d_padded_boundary(DTYPE * const result,
         i_plus_wkx_plus_1 = i + wkx_plus_1; // i + wkx + 1
         nkx_minus_1_minus_wkx_plus_i = nkx_minus_1 - wkx_minus_i; // nkx - 1 - (wkx - i)
 
-        {unsigned j;
+        {omp_iter_var j;
         for (j = wky; j < ny + wky; ++j)
         {
             wky_minus_j = wky - j; // wky - j
@@ -415,11 +415,11 @@ FORCE_INLINE void convolve2d_padded_boundary(DTYPE * const result,
             top = 0.;
             if (nan_interpolate) // compile time constant
                 bot = 0.;
-            {unsigned ii;
+            {omp_iter_var ii;
             for (ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
             {
                 ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
-                {unsigned jj;
+                {omp_iter_var jj;
                 for (jj = j_minus_wky; jj < j_plus_wky_plus_1; ++jj)
                 {
                     val = f[ii*ny_padded + jj];
@@ -500,14 +500,14 @@ FORCE_INLINE void convolve3d_padded_boundary(DTYPE * const result,
     const unsigned wkx_plus_1 = wkx + 1;
     const unsigned wky_plus_1 = wky + 1;
     const unsigned wkz_plus_1 = wkz + 1;
-    unsigned i_plus_wkx_plus_1, j_plus_wky_plus_1, k_plus_wkz_plus_1;
+    omp_iter_var i_plus_wkx_plus_1, j_plus_wky_plus_1, k_plus_wkz_plus_1;
     int nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j, nkz_minus_1_minus_wkz_plus_k;
     unsigned i_unpadded, j_unpadded, k_unpadded;
 
     DTYPE top, bot=0., ker;
     DTYPE val;
 
-    {unsigned i;
+    {omp_iter_var i;
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
@@ -519,7 +519,7 @@ FORCE_INLINE void convolve3d_padded_boundary(DTYPE * const result,
         i_plus_wkx_plus_1 = i + wkx_plus_1; // i + wkx + 1
         nkx_minus_1_minus_wkx_plus_i = nkx_minus_1 - wkx_minus_i; // nkx - 1 - (wkx - i)
 
-        {unsigned j;
+        {omp_iter_var j;
         for (j = wky; j < ny + wky; ++j)
         {
             wky_minus_j = wky - j; // wky - j
@@ -528,7 +528,7 @@ FORCE_INLINE void convolve3d_padded_boundary(DTYPE * const result,
             j_plus_wky_plus_1 = j + wky_plus_1; // j + wky + 1
             nky_minus_1_minus_wky_plus_j = nky_minus_1 - wky_minus_j; // nky - 1 - (wky - i)
 
-            {unsigned k;
+            {omp_iter_var k;
             for (k = wkz; k < nz + wkz; ++k)
             {
                 wkz_minus_k = wkz - k; // wkz - k
@@ -540,15 +540,15 @@ FORCE_INLINE void convolve3d_padded_boundary(DTYPE * const result,
                 top = 0.;
                 if (nan_interpolate) // compile time constant
                     bot = 0.;
-                {unsigned ii;
+                {omp_iter_var ii;
                 for (ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
                 {
                     ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
-                    {unsigned jj;
+                    {omp_iter_var jj;
                     for (jj = j_minus_wky; jj < j_plus_wky_plus_1; ++jj)
                     {
                         ker_j = nky_minus_1_minus_wky_plus_j - jj; // nky - 1 - (wky + jj - j)
-                        {unsigned kk;
+                        {omp_iter_var kk;
                         for (kk = k_minus_wkz; kk < k_plus_wkz_plus_1; ++kk)
                         {
                             ker_k = nkz_minus_1_minus_wkz_plus_k - kk; // nkz - 1 - (wkz + kk - k)

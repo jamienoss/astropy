@@ -73,7 +73,7 @@ matrix:
         - os: osx
           stage: Cron tests
           env: SETUP_CMD='test --remote-data=astropy'
-               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES' clang llvm-openmp'
+               CONDA_DEPENDENCIES="$CONDA_ALL_DEPENDENCIES clang llvm-openmp"
                PIP_DEPENDENCIES='jplephem'
                CCOMPILER=clang
                EVENT_TYPE='cron'
@@ -103,8 +103,7 @@ matrix:
 
         - os: linux
           stage: Initial tests
-          env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES' clang llvm-openmp'
-               PYTEST_VERSION='>3.2'
+          env: PYTHON_VERSION=3.7 CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                SETUP_CMD='test -a "--durations=50"'
           compiler: clang
 

@@ -14,4 +14,11 @@
 
 #endif
 
+// MSVC mandates singed integers for its OpenMP loops
+#if defined(_MSC_VER)
+typedef signed omp_iter_var;
+#else
+typedef unsigned omp_iter_var;
+#endif
+
 #endif
