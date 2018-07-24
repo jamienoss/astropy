@@ -292,10 +292,11 @@ FORCE_INLINE void convolve1d_padded_boundary(DTYPE * const result,
 
     DTYPE top, bot=0., ker, val;
 
+    {unsigned i;
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
-    for (unsigned i = wkx; i < nx + wkx; ++i)
+    for (i = wkx; i < nx + wkx; ++i)
     {
         wkx_minus_i = wkx - i; // wkx - 1
         i_minus_wkx = i - wkx; //i - wkx
@@ -307,7 +308,8 @@ FORCE_INLINE void convolve1d_padded_boundary(DTYPE * const result,
         if (nan_interpolate) // compile time constant
             bot = 0.;
 
-        for (unsigned ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
+        {unsigned ii;
+        for (ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
         {
             val = f[ii];
             ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
@@ -322,7 +324,7 @@ FORCE_INLINE void convolve1d_padded_boundary(DTYPE * const result,
             }
             else
                 top += val * ker;
-        }
+        }}
 
         if (nan_interpolate) // compile time constant
         {
@@ -333,7 +335,7 @@ FORCE_INLINE void convolve1d_padded_boundary(DTYPE * const result,
         }
         else
             result[i_unpadded] = top;
-    }
+    }}
 #ifdef _OPENMP
     }//end parallel scope
 #endif
@@ -389,11 +391,11 @@ FORCE_INLINE void convolve2d_padded_boundary(DTYPE * const result,
     unsigned i_unpadded, j_unpadded;
     DTYPE top, bot=0., ker, val;
 
-
+    {unsigned i;
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
-    for (unsigned i = wkx; i < nx + wkx; ++i)
+    for (i = wkx; i < nx + wkx; ++i)
     {
         wkx_minus_i = wkx - i; // wkx - 1
         i_minus_wkx = i - wkx; //i - wkx
@@ -401,7 +403,8 @@ FORCE_INLINE void convolve2d_padded_boundary(DTYPE * const result,
         i_plus_wkx_plus_1 = i + wkx_plus_1; // i + wkx + 1
         nkx_minus_1_minus_wkx_plus_i = nkx_minus_1 - wkx_minus_i; // nkx - 1 - (wkx - i)
 
-        for (unsigned j = wky; j < ny + wky; ++j)
+        {unsigned j;
+        for (j = wky; j < ny + wky; ++j)
         {
             wky_minus_j = wky - j; // wky - j
             j_minus_wky = j - wky; // j - wky
@@ -412,10 +415,12 @@ FORCE_INLINE void convolve2d_padded_boundary(DTYPE * const result,
             top = 0.;
             if (nan_interpolate) // compile time constant
                 bot = 0.;
-            for (unsigned ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
+            {unsigned ii;
+            for (ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
             {
                 ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
-                for (unsigned jj = j_minus_wky; jj < j_plus_wky_plus_1; ++jj)
+                {unsigned jj;
+                for (jj = j_minus_wky; jj < j_plus_wky_plus_1; ++jj)
                 {
                     val = f[ii*ny_padded + jj];
                     ker_j = nky_minus_1_minus_wky_plus_j - jj; // nky - 1 - (wky + jj - j)
@@ -430,8 +435,8 @@ FORCE_INLINE void convolve2d_padded_boundary(DTYPE * const result,
                     }
                     else
                         top += val * ker;
-                }
-            }
+                }}
+            }}
             if (nan_interpolate) // compile time constant
             {
                 if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
@@ -441,8 +446,8 @@ FORCE_INLINE void convolve2d_padded_boundary(DTYPE * const result,
             }
             else
             result[i_unpadded * ny + j_unpadded] = top;
-        }
-    }
+        }}
+    }}
 #ifdef _OPENMP
     }//end parallel scope
 #endif
@@ -502,10 +507,11 @@ FORCE_INLINE void convolve3d_padded_boundary(DTYPE * const result,
     DTYPE top, bot=0., ker;
     DTYPE val;
 
+    {unsigned i;
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
-    for (unsigned i = wkx; i < nx + wkx; ++i)
+    for (i = wkx; i < nx + wkx; ++i)
     {
         wkx_minus_i = wkx - i; // wkx - 1
         i_minus_wkx = i - wkx; //i - wkx
@@ -513,7 +519,8 @@ FORCE_INLINE void convolve3d_padded_boundary(DTYPE * const result,
         i_plus_wkx_plus_1 = i + wkx_plus_1; // i + wkx + 1
         nkx_minus_1_minus_wkx_plus_i = nkx_minus_1 - wkx_minus_i; // nkx - 1 - (wkx - i)
 
-        for (unsigned j = wky; j < ny + wky; ++j)
+        {unsigned j;
+        for (j = wky; j < ny + wky; ++j)
         {
             wky_minus_j = wky - j; // wky - j
             j_minus_wky = j - wky; // j - wky
@@ -521,7 +528,8 @@ FORCE_INLINE void convolve3d_padded_boundary(DTYPE * const result,
             j_plus_wky_plus_1 = j + wky_plus_1; // j + wky + 1
             nky_minus_1_minus_wky_plus_j = nky_minus_1 - wky_minus_j; // nky - 1 - (wky - i)
 
-            for (unsigned k = wkz; k < nz + wkz; ++k)
+            {unsigned k;
+            for (k = wkz; k < nz + wkz; ++k)
             {
                 wkz_minus_k = wkz - k; // wkz - k
                 k_minus_wkz = k - wkz; // k - wkz
@@ -532,13 +540,16 @@ FORCE_INLINE void convolve3d_padded_boundary(DTYPE * const result,
                 top = 0.;
                 if (nan_interpolate) // compile time constant
                     bot = 0.;
-                for (unsigned ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
+                {unsigned ii;
+                for (ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
                 {
                     ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
-                    for (unsigned jj = j_minus_wky; jj < j_plus_wky_plus_1; ++jj)
+                    {unsigned jj;
+                    for (jj = j_minus_wky; jj < j_plus_wky_plus_1; ++jj)
                     {
                         ker_j = nky_minus_1_minus_wky_plus_j - jj; // nky - 1 - (wky + jj - j)
-                        for (unsigned kk = k_minus_wkz; kk < k_plus_wkz_plus_1; ++kk)
+                        {unsigned kk;
+                        for (kk = k_minus_wkz; kk < k_plus_wkz_plus_1; ++kk)
                         {
                             ker_k = nkz_minus_1_minus_wkz_plus_k - kk; // nkz - 1 - (wkz + kk - k)
                             val = f[(ii*ny_padded + jj)*nz_padded + kk]; //[ii, jj, kk];
@@ -553,9 +564,9 @@ FORCE_INLINE void convolve3d_padded_boundary(DTYPE * const result,
                             }
                             else
                                 top += val * ker;
-                        }
-                    }
-                }
+                        }}
+                    }}
+                }}
                 if (nan_interpolate) // compile time constant
                 {
                     if (bot == 0) // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
@@ -565,9 +576,9 @@ FORCE_INLINE void convolve3d_padded_boundary(DTYPE * const result,
                 }
                 else
                     result[(i_unpadded*ny + j_unpadded)*nz + k_unpadded] = top;
-            }
-        }
-    }
+            }}
+        }}
+    }}
 #ifdef _OPENMP
     }//end parallel scope
 #endif
