@@ -221,15 +221,15 @@ FORCE_INLINE void convolve1d_boundary_none(DTYPE * const result,
     const unsigned nkx_minus_1 = nkx-1;
     unsigned wkx_minus_i;
     unsigned ker_i;
-    const unsigned nx_minus_wkx = nx - wkx;
+    const omp_unsigned nx_minus_wkx = nx - wkx;
     unsigned i_minus_wkx;
     const unsigned wkx_plus_1 = wkx + 1;
-    unsigned i_plus_wkx_plus_1;
+    omp_unsigned i_plus_wkx_plus_1;
     unsigned nkx_minus_1_minus_wkx_plus_i;
 
     DTYPE top, bot=0., ker, val;
 
-    {int i;
+    {omp_unsigned i;
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
@@ -243,7 +243,7 @@ FORCE_INLINE void convolve1d_boundary_none(DTYPE * const result,
         top = 0.;
         if (nan_interpolate) // compile time constant
             bot = 0.;
-        {int ii;
+        {omp_unsigned ii;
         for (ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
         {
             ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
@@ -321,17 +321,17 @@ FORCE_INLINE void convolve2d_boundary_none(DTYPE * const result,
     const unsigned nkx_minus_1 = nkx-1, nky_minus_1 = nky-1;
     unsigned wkx_minus_i, wky_minus_j;
     unsigned ker_i, ker_j;
-    const unsigned nx_minus_wkx = nx - wkx;
-    const unsigned ny_minus_wky = ny - wky;
+    const omp_unsigned nx_minus_wkx = nx - wkx;
+    const omp_unsigned ny_minus_wky = ny - wky;
     unsigned i_minus_wkx, j_minus_wky;
     const unsigned wkx_plus_1 = wkx + 1;
     const unsigned wky_plus_1 = wky + 1;
-    unsigned i_plus_wkx_plus_1, j_plus_wky_plus_1;
+    omp_unsigned i_plus_wkx_plus_1, j_plus_wky_plus_1;
     unsigned nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j;
 
     DTYPE top, bot=0., ker, val;
 
-    {int i;
+    {omp_unsigned i;
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
@@ -342,7 +342,7 @@ FORCE_INLINE void convolve2d_boundary_none(DTYPE * const result,
         i_plus_wkx_plus_1 = i + wkx_plus_1; // i + wkx + 1
         nkx_minus_1_minus_wkx_plus_i = nkx_minus_1 - wkx_minus_i; // nkx - 1 - (wkx - i)
 
-        {int j;
+        {omp_unsigned j;
         for (j = wky; j < ny_minus_wky; ++j)
         {
             wky_minus_j = wkx - j; // wky - j
@@ -353,11 +353,11 @@ FORCE_INLINE void convolve2d_boundary_none(DTYPE * const result,
             top = 0.;
             if (nan_interpolate) // compile time constant
                 bot = 0.;
-            {int ii;
+            {omp_unsigned ii;
             for (ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
             {
                 ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
-                {int jj;
+                {omp_unsigned jj;
                 for (jj = j_minus_wky; jj < j_plus_wky_plus_1; ++jj)
                 {
                     ker_j = nky_minus_1_minus_wky_plus_j - jj; // nky - 1 - (wky + jj - j)
@@ -439,19 +439,19 @@ FORCE_INLINE void convolve3d_boundary_none(DTYPE * const result,
     const unsigned nkx_minus_1 = nkx-1, nky_minus_1 = nky-1, nkz_minus_1 = nkz-1;
     unsigned wkx_minus_i, wky_minus_j, wkz_minus_k;
     unsigned ker_i, ker_j, ker_k;
-    const unsigned nx_minus_wkx = nx - wkx;
-    const unsigned ny_minus_wky = ny - wky;
-    const unsigned nz_minus_wkz = nz - wkz;
+    const omp_unsigned nx_minus_wkx = nx - wkx;
+    const omp_unsigned ny_minus_wky = ny - wky;
+    const omp_unsigned nz_minus_wkz = nz - wkz;
     unsigned i_minus_wkx, j_minus_wky, k_minus_wkz;
     const unsigned wkx_plus_1 = wkx + 1;
     const unsigned wky_plus_1 = wky + 1;
     const unsigned wkz_plus_1 = wkz + 1;
-    unsigned i_plus_wkx_plus_1, j_plus_wky_plus_1, k_plus_wkz_plus_1;
+    omp_unsigned i_plus_wkx_plus_1, j_plus_wky_plus_1, k_plus_wkz_plus_1;
     unsigned nkx_minus_1_minus_wkx_plus_i, nky_minus_1_minus_wky_plus_j, nkz_minus_1_minus_wkz_plus_k;
 
     DTYPE top, bot=0., ker, val;
 
-    {int i;
+    {omp_unsigned i;
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
@@ -462,7 +462,7 @@ FORCE_INLINE void convolve3d_boundary_none(DTYPE * const result,
         i_plus_wkx_plus_1 = i + wkx_plus_1; // i + wkx + 1
         nkx_minus_1_minus_wkx_plus_i = nkx_minus_1 - wkx_minus_i; // nkx - 1 - (wkx - i)
 
-        {int j;
+        {omp_unsigned j;
         for (j = wky; j < ny_minus_wky; ++j)
         {
             wky_minus_j = wkx - j; // wky - j
@@ -470,7 +470,7 @@ FORCE_INLINE void convolve3d_boundary_none(DTYPE * const result,
             j_plus_wky_plus_1 = j + wky_plus_1; // j + wky + 1
             nky_minus_1_minus_wky_plus_j = nky_minus_1 - wky_minus_j; // nky - 1 - (wky - i)
 
-            {int k;
+            {omp_unsigned k;
             for (k = wkz; k < nz_minus_wkz; ++k)
             {
                 wkz_minus_k = wkz - k; // wkz - k
@@ -481,15 +481,15 @@ FORCE_INLINE void convolve3d_boundary_none(DTYPE * const result,
                 top = 0.;
                 if (nan_interpolate) // compile time constant
                     bot = 0.;
-                {int ii;
+                {omp_unsigned ii;
                 for (ii = i_minus_wkx; ii < i_plus_wkx_plus_1; ++ii)
                 {
                     ker_i = nkx_minus_1_minus_wkx_plus_i - ii; // nkx - 1 - (wkx + ii - i)
-                    {int jj;
+                    {omp_unsigned jj;
                     for (jj = j_minus_wky; jj < j_plus_wky_plus_1; ++jj)
                     {
                         ker_j = nky_minus_1_minus_wky_plus_j - jj; // nky - 1 - (wky + jj - j)
-                        {int kk;
+                        {omp_unsigned kk;
                         for (kk = k_minus_wkz; kk < k_plus_wkz_plus_1; ++kk)
                         {
                             ker_k = nkz_minus_1_minus_wkz_plus_k - kk; // nkz - 1 - (wkz + kk - k)
