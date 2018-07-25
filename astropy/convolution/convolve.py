@@ -4,6 +4,7 @@ import warnings
 
 import ctypes
 import os
+import sys
 import faulthandler
 import glob
 import numpy as np
@@ -26,7 +27,12 @@ faulthandler.enable()
 
 # Find and load C convolution library
 lib_path = glob.glob(os.path.join(os.path.dirname(__file__), 'lib_convolve*'))[0]
-lib = ctypes.cdll.LoadLibrary(lib_path)
+print("lib_path: ", lib_path)
+if sys.platform.startswith('win'):
+    lib = ctypes.windll.LoadLibrary(lib_path)
+else:
+    lib = ctypes.cdll.LoadLibrary(lib_path)
+print("lib_convolve loaded")
 # The GIL is automatically released by default when calling functions imported
 # from libaries loaded by ctypes.cdll.LoadLibrary(<path>)
 
