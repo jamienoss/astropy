@@ -7,15 +7,23 @@ environment:
         PYTHON: "C:\\conda"
         MINICONDA_VERSION: "latest"
         CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
-        PYTHON_ARCH: "64" # needs to be set for CMD_IN_ENV to succeed. If a mix
-                          # of 32 bit and 64 bit builds are needed, move this
-                          # to the matrix section.
+        
         CONDA_DEPENDENCIES: "Cython scipy h5py beautifulsoup4 jinja2 pyyaml matplotlib scikit-image pytz"
         PIP_DEPENDENCIES: "objgraph"
 
     matrix:
         - PYTHON_VERSION: "3.6"
           NUMPY_VERSION: "stable"
+          PYTHON_ARCH: "64" # needs to be set for CMD_IN_ENV to succeed. If a mix
+                          # of 32 bit and 64 bit builds are needed, move this
+                          # to the matrix section.
+          
+        
+        - PYTHON_VERSION: "3.6"
+          NUMPY_VERSION: "stable"
+          PYTHON_ARCH: "32" # needs to be set for CMD_IN_ENV to succeed. If a mix
+                          # of 32 bit and 64 bit builds are needed, move this
+                          # to the matrix section.
 
 matrix:
     fast_finish: true

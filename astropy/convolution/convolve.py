@@ -25,20 +25,23 @@ from ..utils.openmp import handle_n_threads_usage
 # or asserts. This doesn't, currently, work with Jupyter Notebook.
 faulthandler.enable()
 
+
 # Find and load C convolution library
 lib_path = glob.glob(os.path.join(os.path.dirname(__file__), 'lib_convolve*'))[0]
 print("lib_path: ", lib_path)
 if sys.platform.startswith('win'):
-    lib = ctypes.windll.LoadLibrary(lib_path)
+    libConvolve = ctypes.windll.LoadLibrary(lib_path)
 else:
-    lib = ctypes.cdll.LoadLibrary(lib_path)
+    libConvolve = ctypes.cdll.LoadLibrary(lib_path)
 print("lib_convolve loaded")
+
+
 # The GIL is automatically released by default when calling functions imported
 # from libaries loaded by ctypes.cdll.LoadLibrary(<path>)
 
 # Declare prototypes
 # Boundary None
-_convolveNd_boundary_none_c = lib.convolveNd_boundary_none_c
+_convolveNd_boundary_none_c = libConvolve.convolveNd_boundary_none_c
 _convolveNd_boundary_none_c.restype = None
 _convolveNd_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
@@ -50,7 +53,7 @@ _convolveNd_boundary_none_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CON
             ctypes.c_uint] # n_threads
 
 # Padded boundaries ['fill', 'extend', 'wrap']
-_convolveNd_padded_boundary_c = lib.convolveNd_padded_boundary_c
+_convolveNd_padded_boundary_c = libConvolve.convolveNd_padded_boundary_c
 _convolveNd_padded_boundary_c.restype = None
 _convolveNd_padded_boundary_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}), # return array
             ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), # input array
