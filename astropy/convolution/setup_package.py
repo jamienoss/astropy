@@ -14,7 +14,7 @@ SRC_FILES = [os.path.join(C_CONVOLVE_PKGDIR, filename)
 extra_compile_args=['-UNDEBUG']
 # http://grokbase.com/t/python/cython-devel/148e9sy24z/cython-error-lnk2001-unresolved-external-symbol-pyinit-init
 if sys.platform.startswith('win'):
-     extra_compile_args.append('-DMS_WIN64')
+     pass#extra_compile_args.append('-DMS_WIN64')
 else:
     extra_compile_args.append('-fPIC')
 

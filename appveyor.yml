@@ -12,24 +12,27 @@ environment:
         PIP_DEPENDENCIES: "objgraph"
 
     matrix:
-        - PYTHON_VERSION: "3.6"
+        - platform: x86
+          PYTHON_VERSION: "3.6"
           NUMPY_VERSION: "stable"
+          PYTHON_ARCH: "32" # needs to be set for CMD_IN_ENV to succeed. If a mix
+                          # of 32 bit and 64 bit builds are needed, move this
+                          # to the matrix section.
+    
+        - platform: x64
+          PYTHON_VERSION: "3.6"
+          NUMPY_VERSION: "stable" 
           PYTHON_ARCH: "64" # needs to be set for CMD_IN_ENV to succeed. If a mix
                           # of 32 bit and 64 bit builds are needed, move this
                           # to the matrix section.
           
         
-        - PYTHON_VERSION: "3.6"
-          NUMPY_VERSION: "stable"
-          PYTHON_ARCH: "32" # needs to be set for CMD_IN_ENV to succeed. If a mix
-                          # of 32 bit and 64 bit builds are needed, move this
-                          # to the matrix section.
+       
 
 matrix:
-    fast_finish: false
+    fast_finish: true
 
-platform:
-    -x64
+
 
 os: Visual Studio 2017
 
