@@ -47,7 +47,8 @@ generate_version_py(NAME, VERSION, RELEASE, get_debug_option(NAME),
                     uses_git=not RELEASE)
 
 # Generate function to check OpenMP support at runtime
-generate_openmp_enabled_py(NAME)
+disable_openmp = False if 'ASTROPY_OPENMP' in os.environ and os.environ['ASTROPY_OPENMP'] == '1' else True
+generate_openmp_enabled_py(NAME, disable_openmp=disable_openmp)
 
 # Get configuration information from all of the various subpackages.
 # See the docstring for setup_helpers.update_package_files for more

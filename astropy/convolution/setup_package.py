@@ -23,6 +23,8 @@ def get_extensions():
                  include_dirs=["numpy"],
                  language='c')
 
-    add_openmp_flags_if_available(lib_convolve_ext)
+
+    if 'ASTROPY_OPENMP' in os.environ and os.environ['ASTROPY_OPENMP'] == '1':
+        add_openmp_flags_if_available(lib_convolve_ext)
 
     return [lib_convolve_ext]
