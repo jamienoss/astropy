@@ -760,7 +760,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     else:
         bigimwt = 1
 
-    if np.isnan(fftmult).any():
+    if np.isnan(fftmult.sum()):
         # this check should be unnecessary; call it an insanity check
         raise ValueError("Encountered NaNs in convolve.  This is disallowed.")
 
