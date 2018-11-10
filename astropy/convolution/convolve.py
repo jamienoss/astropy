@@ -618,32 +618,22 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     nanmaskkernel = np.isnan(kernel) | np.isinf(kernel)
     kernel[nanmaskkernel] = 0
 
+    kernel_sum = kernel.sum()
     if normalize_kernel is True:
-        if kernel.sum() < 1. / MAX_NORMALIZATION:
+        if kernel_sum < 1. / MAX_NORMALIZATION:
             raise Exception("The kernel can't be normalized, because its sum is "
                             "close to zero. The sum of the given kernel is < {0}"
                             .format(1. / MAX_NORMALIZATION))
-        kernel_scale = kernel.sum()
-        normalized_kernel = kernel / kernel_scale
-        kernel_scale = 1  # if we want to normalize it, leave it normed!
+        normalized_kernel = kernel / kernel_sum
     elif normalize_kernel:
         # try this.  If a function is not passed, the code will just crash... I
         # think type checking would be better but PEPs say otherwise...
-        kernel_scale = normalize_kernel(kernel)
-        normalized_kernel = kernel / kernel_scale
+        normalized_kernel = kernel / normalize_kernel(kernel)
     else:
-        kernel_scale = kernel.sum()
-        if np.abs(kernel_scale) < normalization_zero_tol:
-            if interpolate_nan:
-                raise ValueError('Cannot interpolate NaNs with an unnormalizable kernel')
-            else:
-                # the kernel's sum is near-zero, so it can't be scaled
-                kernel_scale = 1
-                normalized_kernel = kernel
-        else:
-            # the kernel is normalizable; we'll temporarily normalize it
-            # now and undo the normalization later.
-            normalized_kernel = kernel / kernel_scale
+        normalized_kernel = kernel
+
+    if interpolate_nan and (np.abs(kernel_sum) < normalization_zero_tol):
+        raise ValueError('Cannot interpolate NaNs with an unnormalizable kernel')
 
     if boundary is None:
         warnings.warn("The convolve_fft version of boundary=None is "
@@ -779,8 +769,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     # copied
     array[nanmaskarray] = np.nan
     kernel[nanmaskkernel] = np.nan
-
-    fftmult *= kernel_scale
 
     if return_fft:
         return fftmult
