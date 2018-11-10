@@ -748,6 +748,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     kernfft = fftn(np.fft.ifftshift(bigkernel))
     fftmult = arrayfft * kernfft
 
+    if return_fft:
+        return fftmult
+
     if np.isnan(fftmult.sum()):
         # this check should be unnecessary; call it an insanity check
         raise ValueError("Encountered NaNs in convolve.  This is disallowed.")
@@ -770,10 +773,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     else:
         bigimwt = 1
 
- 
 
-    if return_fft:
-        return fftmult
 
     if interpolate_nan:
         with np.errstate(divide='ignore'):
