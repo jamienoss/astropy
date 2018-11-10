@@ -770,12 +770,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         # need to re-zero weights outside of the image (if it is padded, we
         # still don't weight those regions)
         bigimwt[arrayslices] = wtsm.real[arrayslices]
-    else:
-        bigimwt = 1
 
-
-
-    if interpolate_nan:
         with np.errstate(divide='ignore'):
             # divide by zeros are expected here; if the weight is zero, we want
             # the output to be nan or inf
