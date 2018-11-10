@@ -737,6 +737,12 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     else:
         bigkernel = normalized_kernel
 
+    # restore NaNs in original image (they were modified inplace earlier)
+    # We don't have to worry about masked arrays - if input was masked, it was
+    # copied
+    array[nanmaskarray] = np.nan
+    kernel[nanmaskkernel] = np.nan
+
     arrayfft = fftn(bigarray)
     # need to shift the kernel so that, e.g., [0,0,1,0] -> [1,0,0,0] = unity
     kernfft = fftn(np.fft.ifftshift(bigkernel))
@@ -763,12 +769,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     if np.isnan(fftmult.sum()):
         # this check should be unnecessary; call it an insanity check
         raise ValueError("Encountered NaNs in convolve.  This is disallowed.")
-
-    # restore NaNs in original image (they were modified inplace earlier)
-    # We don't have to worry about masked arrays - if input was masked, it was
-    # copied
-    array[nanmaskarray] = np.nan
-    kernel[nanmaskkernel] = np.nan
 
     if return_fft:
         return fftmult
