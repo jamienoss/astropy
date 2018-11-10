@@ -724,7 +724,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
 
     if not np.all(newshape == arrayshape):
         if np.isfinite(fill_value):
-            bigarray = np.ones(newshape, dtype=complex_dtype) * fill_value
+            bigarray = np.full(newshape, fill_value, dtype=complex_dtype)
         else:
             bigarray = np.zeros(newshape, dtype=complex_dtype)
         bigarray[arrayslices] = array
