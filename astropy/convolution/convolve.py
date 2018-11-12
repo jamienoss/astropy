@@ -765,7 +765,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         wtfft = fftn(bigimwt)
 
         # You can only get to this point if kernel_is_normalized
-        wtfftmult = wtfft * kernfft
+        wtfftmult = wtfft * kernfft/kernel_sum
         wtsm = ifftn(wtfftmult)
         # need to re-zero weights outside of the image (if it is padded, we
         # still don't weight those regions)
