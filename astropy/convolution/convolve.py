@@ -742,15 +742,15 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     kernfft = fftn(np.fft.ifftshift(bigkernel))
     fftmult = arrayfft * kernfft
 
-    if np.isnan(fftmult.sum()):
-        # this check should be unnecessary; call it an insanity check
-        raise ValueError("Encountered NaNs in convolve.  This is disallowed.")
-
     # restore NaNs in original image (they were modified inplace earlier)
     # We don't have to worry about masked arrays - if input was masked, it was
     # copied
     array[nanmaskarray] = np.nan
     kernel[nanmaskkernel] = np.nan
+
+    if np.isnan(fftmult.sum()):
+        # this check should be unnecessary; call it an insanity check
+        raise ValueError("Encountered NaNs in convolve.  This is disallowed.")
 
     if return_fft:
         return fftmult
