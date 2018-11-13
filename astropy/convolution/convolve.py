@@ -612,6 +612,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         kernel = kernel.filled(0)
 
     # NaN and inf catching
+    #side effect!!!
     nanmaskarray = np.isnan(array) | np.isinf(array)
     array[nanmaskarray] = 0
     interpolate_nan = (nan_treatment == 'interpolate') and nanmaskarray.any()
@@ -752,7 +753,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         # this check should be unnecessary; call it an insanity check
         raise ValueError("Encountered NaNs in convolve.  This is disallowed.")
 
-    if return_fft:
+    if return_fft: # shouldn't this return post nan interpolation?
         return fftmult
 
     if interpolate_nan:
