@@ -619,22 +619,25 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     nanmaskkernel = np.isnan(kernel) | np.isinf(kernel)
     kernel[nanmaskkernel] = 0
 
-    if normalize_kernel:
+    if normalize_kernel or interpolate_nan:
         # If a function is not passed, the code will just crash... I
         # think type checking would be better but PEPs say otherwise...
-        kernel_scale = kernel.sum() if normalize_kernel is True else normalize_kernel(kernel)
-
-        if kernel_scale < 1. / MAX_NORMALIZATION:
-            raise Exception("The kernel can't be normalized, because its sum is "
-                            "close to zero. The sum of the given kernel is < {0}"
-                            .format(1. / MAX_NORMALIZATION))
+        kernel_scale = kernel.sum() if normalize_kernel is True or interpolate_nan else normalize_kernel(kernel)
+        min_kernel_threshold = np.minimum( 1. / MAX_NORMALIZATION, normalization_zero_tol)
+        if np.abs(kernel_scale) <= min_kernel_threshold:
+            if interpolate_nan:
+                raise ValueError("Cannot interpolate NaNs with an unnormalizable kernel. "
+                                 "The kernel can't be normalized, because its sum is "
+                                 "close to zero. The sum of the given kernel is < {0}"
+                                 .format(min_kernel_threshold))
+            else:
+                raise ValueError("The kernel can't be normalized, because its sum is "
+                                "close to zero. The sum of the given kernel is < {0}"
+                                .format(min_kernel_threshold))
 
         normalized_kernel = kernel / kernel_scale
     else:
         normalized_kernel = kernel
-
-    if interpolate_nan and (np.abs(kernel_scale) < normalization_zero_tol):
-        raise ValueError('Cannot interpolate NaNs with an unnormalizable kernel')
 
     if boundary is None:
         warnings.warn("The convolve_fft version of boundary=None is "
