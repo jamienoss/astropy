@@ -619,22 +619,22 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     nanmaskkernel = np.isnan(kernel) | np.isinf(kernel)
     kernel[nanmaskkernel] = 0
 
-    kernel_sum = kernel.sum()
-    if interpolate_nan and (np.abs(kernel_sum) < normalization_zero_tol):
-        raise ValueError('Cannot interpolate NaNs with an unnormalizable kernel')
+    if normalize_kernel:
+        # If a function is not passed, the code will just crash... I
+        # think type checking would be better but PEPs say otherwise...
+        kernel_scale = kernel.sum() if normalize_kernel is True else normalize_kernel(kernel)
 
-    if normalize_kernel is True:
-        if kernel_sum < 1. / MAX_NORMALIZATION:
+        if kernel_scale < 1. / MAX_NORMALIZATION:
             raise Exception("The kernel can't be normalized, because its sum is "
                             "close to zero. The sum of the given kernel is < {0}"
                             .format(1. / MAX_NORMALIZATION))
-        normalized_kernel = kernel / kernel_sum
-    elif normalize_kernel:
-        # try this.  If a function is not passed, the code will just crash... I
-        # think type checking would be better but PEPs say otherwise...
-        normalized_kernel = kernel / normalize_kernel(kernel)
+
+        normalized_kernel = kernel / kernel_scale
     else:
         normalized_kernel = kernel
+
+    if interpolate_nan and (np.abs(kernel_scale) < normalization_zero_tol):
+        raise ValueError('Cannot interpolate NaNs with an unnormalizable kernel')
 
     if boundary is None:
         warnings.warn("The convolve_fft version of boundary=None is "
@@ -766,7 +766,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         wtfft = fftn(bigimwt)
 
         # You can only get to this point if kernel_is_normalized
-        wtfftmult = wtfft * kernfft/kernel_sum
+        wtfftmult = wtfft * kernfft/kernel_scale
         wtsm = ifftn(wtfftmult)
         # need to re-zero weights outside of the image (if it is padded, we
         # still don't weight those regions)
