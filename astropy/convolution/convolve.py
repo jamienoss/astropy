@@ -620,6 +620,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     kernel[nanmaskkernel] = 0
 
     kernel_sum = kernel.sum()
+    if interpolate_nan and (np.abs(kernel_sum) < normalization_zero_tol):
+        raise ValueError('Cannot interpolate NaNs with an unnormalizable kernel')
+
     if normalize_kernel is True:
         if kernel_sum < 1. / MAX_NORMALIZATION:
             raise Exception("The kernel can't be normalized, because its sum is "
@@ -632,9 +635,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         normalized_kernel = kernel / normalize_kernel(kernel)
     else:
         normalized_kernel = kernel
-
-    if interpolate_nan and (np.abs(kernel_sum) < normalization_zero_tol):
-        raise ValueError('Cannot interpolate NaNs with an unnormalizable kernel')
 
     if boundary is None:
         warnings.warn("The convolve_fft version of boundary=None is "
